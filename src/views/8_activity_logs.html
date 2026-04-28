@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity Logs</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Poppins', sans-serif; background: #f0f4f8; display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 220px; background: #1565c0; color: white;
+    min-height: 100vh; flex-shrink: 0;
+    display: flex; flex-direction: column;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.12);
+  }
+  .sidebar-logo {
+    background: #0d47a1; padding: 18px 20px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 15px; font-weight: 700;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .sidebar-logo .logo-icon {
+    width: 32px; height: 32px; background: rgba(255,255,255,0.2);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  .sidebar nav { flex: 1; padding: 10px 0; }
+  .sidebar nav a {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; color: rgba(255,255,255,0.8);
+    text-decoration: none; font-size: 13px; font-weight: 500;
+    border-left: 3px solid transparent; transition: all 0.2s;
+  }
+  .sidebar nav a i { width: 16px; text-align: center; font-size: 14px; }
+  .sidebar nav a.active, .sidebar nav a:hover {
+    background: rgba(255,255,255,0.12); color: white; border-left-color: white;
+  }
+
+  .main { flex: 1; display: flex; flex-direction: column; }
+  .topbar {
+    background: #1565c0; color: white; padding: 13px 24px;
+    display: flex; justify-content: space-between; align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-right { display: flex; align-items: center; gap: 18px; }
+  .topbar-icon { position: relative; cursor: pointer; font-size: 18px; opacity: 0.9; }
+  .notif-badge {
+    position: absolute; top: -5px; right: -6px;
+    background: #ef5350; color: white; font-size: 9px; font-weight: 700;
+    border-radius: 50%; width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .user-chip {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,0.15); padding: 6px 14px;
+    border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer;
+  }
+
+  .content { padding: 28px 24px; flex: 1; overflow-y: auto; }
+
+  .toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  .search-wrap { position: relative; width: 280px; }
+  .search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; }
+  .search-input {
+    width: 100%; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 9px 14px 9px 36px; font-size: 13px;
+    font-family: 'Poppins', sans-serif; outline: none; transition: all 0.2s;
+  }
+  .search-input:focus { border-color: #1565c0; box-shadow: 0 0 0 3px rgba(21,101,192,0.1); }
+  .btn-export {
+    background: white; color: #334155; border: 1px solid #e2e8f0;
+    border-radius: 10px; padding: 9px 16px;
+    font-size: 13px; font-family: 'Poppins', sans-serif; cursor: pointer;
+    display: flex; align-items: center; gap: 6px; font-weight: 500; transition: all 0.2s;
+  }
+  .btn-export:hover { border-color: #1565c0; color: #1565c0; }
+
+  .table-card {
+    background: white; border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06); overflow: hidden;
+  }
+  .table-card-header {
+    padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .table-card-title {
+    font-size: 14px; font-weight: 600; color: #1e293b;
+    display: flex; align-items: center; gap: 8px;
+    border-left: 3px solid #1565c0; padding-left: 12px;
+  }
+  .record-count { font-size: 12px; color: #94a3b8; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    background: #f8fafc; padding: 11px 16px;
+    text-align: left; font-size: 12px; font-weight: 600;
+    color: #64748b; border-bottom: 1px solid #e2e8f0;
+    text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  tbody td {
+    padding: 13px 16px; font-size: 13px; color: #334155;
+    border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: #f8fafc; }
+
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+  }
+  .avatar-blue   { background: #e3f2fd; color: #1565c0; }
+  .avatar-green  { background: #e8f5e9; color: #2e7d32; }
+  .avatar-orange { background: #fff3e0; color: #e65100; }
+  .user-name { font-weight: 600; color: #1e293b; }
+  .user-role { font-size: 11px; color: #94a3b8; }
+
+  .action-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  }
+  .action-login    { background: #e3f2fd; color: #1565c0; }
+  .action-upload   { background: #e8f5e9; color: #2e7d32; }
+  .action-download { background: #fff3e0; color: #e65100; }
+  .action-share    { background: #f3e5f5; color: #6a1b9a; }
+  .action-delete   { background: #ffebee; color: #c62828; }
+
+  .timestamp { font-size: 12px; color: #64748b; white-space: nowrap; }
+  .ip-addr { font-size: 11px; color: #94a3b8; font-family: monospace; }
+</style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">📁</div>
+    FileShare Admin
+  </div>
+  <nav>
+    <a href="2_admin_dashboard.html"><i class="fas fa-home"></i> Dashboard</a>
+    <a href="5_manage_users.html"><i class="fas fa-users"></i> Manage Users</a>
+    <a href="6_all_files.html"><i class="fas fa-folder"></i> All Files</a>
+    <a href="#" class="active"><i class="fas fa-clipboard-list"></i> Activity Logs</a>
+    <a href="9_settings.html"><i class="fas fa-cog"></i> Settings</a>
+  </nav>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <span class="topbar-title">Activity Logs</span>
+    <div class="topbar-right">
+      <div class="topbar-icon"><i class="fas fa-bell"></i><span class="notif-badge">3</span></div>
+      <div class="user-chip"><i class="fas fa-user-shield"></i> Administrator</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input class="search-input" type="text" placeholder="Search logs by user or action…">
+      </div>
+      <button class="btn-export"><i class="fas fa-download"></i> Export CSV</button>
+    </div>
+
+    <div class="table-card">
+      <div class="table-card-header">
+        <span class="table-card-title"><i class="fas fa-history"></i> System Activity</span>
+        <span class="record-count">5 entries today</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Action</th>
+            <th>Details</th>
+            <th>IP Address</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="avatar avatar-blue">A</div>
+                <div><div class="user-name">Administrator</div><div class="user-role">Admin</div></div>
+              </div>
+            </td>
+            <td><span class="action-badge action-login"><i class="fas fa-sign-in-alt"></i> Login</span></td>
+            <td>Successful authentication via email/password</td>
+            <td><span class="ip-addr">192.168.1.1</span></td>
+            <td><span class="timestamp">Today, 10:05 AM</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="avatar avatar-green">J</div>
+                <div><div class="user-name">John Smith</div><div class="user-role">User</div></div>
+              </div>
+            </td>
+            <td><span class="action-badge action-upload"><i class="fas fa-upload"></i> Upload</span></td>
+            <td>Uploaded <strong>report.docx</strong> (340 KB)</td>
+            <td><span class="ip-addr">192.168.1.42</span></td>
+            <td><span class="timestamp">Today, 10:00 AM</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="avatar avatar-green">J</div>
+                <div><div class="user-name">John Smith</div><div class="user-role">User</div></div>
+              </div>
+            </td>
+            <td><span class="action-badge action-share"><i class="fas fa-share"></i> Share</span></td>
+            <td>Shared <strong>report.docx</strong> with Administrator</td>
+            <td><span class="ip-addr">192.168.1.42</span></td>
+            <td><span class="timestamp">Today, 10:05 AM</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="avatar avatar-blue">A</div>
+                <div><div class="user-name">Administrator</div><div class="user-role">Admin</div></div>
+              </div>
+            </td>
+            <td><span class="action-badge action-upload"><i class="fas fa-upload"></i> Upload</span></td>
+            <td>Uploaded <strong>Annual Report 2024.pdf</strong> (2.4 MB)</td>
+            <td><span class="ip-addr">192.168.1.1</span></td>
+            <td><span class="timestamp">Today, 10:09 AM</span></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="user-cell">
+                <div class="avatar avatar-orange">J</div>
+                <div><div class="user-name">Jane Doe</div><div class="user-role">User</div></div>
+              </div>
+            </td>
+            <td><span class="action-badge action-download"><i class="fas fa-download"></i> Download</span></td>
+            <td>Downloaded <strong>Annual Report 2024.pdf</strong></td>
+            <td><span class="ip-addr">192.168.1.88</span></td>
+            <td><span class="timestamp">Today, 10:30 AM</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>
