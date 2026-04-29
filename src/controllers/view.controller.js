@@ -277,6 +277,20 @@ async function renderOrgSettings(req, res, next) {
     }
 }
 
+async function renderAdminAdmins(req, res, next) {
+    try {
+        const result = await userModel.findAllByOrg(req.user.org_id, { limit: 100 });
+        res.render('admin/admins', {
+            title: 'Manage Admins',
+            user: req.user,
+            currentPath: req.path,
+            users: result.users
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     renderDashboard,
     renderFiles,
@@ -289,5 +303,6 @@ module.exports = {
     renderAdminUserDetail,
     renderAdminFiles,
     renderAdminAuditLog,
-    renderOrgSettings
+    renderOrgSettings,
+    renderAdminAdmins
 };

@@ -18,6 +18,9 @@
   <nav>
     <a href="/admin/dashboard" class="<%= currentPath === '/admin/dashboard' || currentPath === '/admin' ? 'active' : '' %>"><i class="fas fa-home"></i> Dashboard</a>
     <a href="/admin/users" class="<%= currentPath && currentPath.startsWith('/admin/users') ? 'active' : '' %>"><i class="fas fa-users"></i> Manage Users</a>
+    <% if (user && user.role === 'super_admin') { %>
+    <a href="/admin/admins" class="<%= currentPath && currentPath.startsWith('/admin/admins') ? 'active' : '' %>"><i class="fas fa-user-shield"></i> Manage Admins</a>
+    <% } %>
     <a href="/admin/files" class="<%= currentPath && currentPath.startsWith('/admin/files') ? 'active' : '' %>"><i class="fas fa-folder"></i> All Files</a>
     <a href="/admin/audit-log" class="<%= currentPath && currentPath.startsWith('/admin/audit-log') ? 'active' : '' %>"><i class="fas fa-clipboard-list"></i> Activity Logs</a>
     <% if (user && user.role === 'super_admin') { %>

@@ -17,6 +17,7 @@ router.get('/admin/users/:id', requireRole('admin', 'super_admin'), viewControll
 router.get('/admin/files', requireRole('admin', 'super_admin'), viewController.renderAdminFiles);
 router.get('/admin/audit-log', requireRole('admin', 'super_admin'), viewController.renderAdminAuditLog);
 router.get('/admin/org-settings', requireRole('super_admin'), viewController.renderOrgSettings);
+router.get('/admin/admins', requireRole('super_admin'), viewController.renderAdminAdmins);
 
 // 404 handler
 router.use((req, res) => {

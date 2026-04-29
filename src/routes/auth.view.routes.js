@@ -1,7 +1,17 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/', (req, res) => res.redirect('/login'));
+router.get('/', (req, res) => {
+    // If already logged in, redirect to dashboard
+    const token = req.cookies && req.cookies.auth_token;
+    if (token) {
+        try {
+            require('../utils/jwt').verifyAccessToken(token);
+            return res.redirect('/dashboard');
+        } catch(e) {}
+    }
+    res.render('landing', { title: 'SecureShare — Secure File Sharing for Teams' });
+});
 
 router.get('/login', (req, res) => {
     res.render('auth/login', { title: 'Sign In' });

@@ -484,5 +484,89 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {}
         });
     }
+
+    // SECTION 15 — New folder creation, rename, and delete
+    const newFolderBtn = document.getElementById('new-folder-btn');
+    if (newFolderBtn) {
+        newFolderBtn.addEventListener('click', async () => {
+            const folderName = window.prompt('Folder name:');
+            if (!folderName || folderName.trim() === '') return;
+            
+            const params = new URLSearchParams(window.location.search);
+            const parentId = params.get('folder_id');
+            
+            try {
+                await apiFetch('/api/v1/folders', {
+                    method: 'POST',
+                    body: { name: folderName.trim(), parent_id: parentId }
+                });
+                showToast('Folder created', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } catch (err) {}
+        });
+    }
+
+    window.toggleFolderMenu = function(btn) {
+        const dd = btn.nextElementSibling;
+        document.querySelectorAll('.folder-dropdown').forEach(d => { if (d !== dd) d.style.display = 'none'; });
+        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+    };
+    document.addEventListener('click', () => document.querySelectorAll('.folder-dropdown').forEach(d => d.style.display = 'none'));
+
+    document.querySelectorAll('.rename-folder-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const folderId = btn.dataset.folderId;
+            const currentName = btn.dataset.folderName;
+            const newName = window.prompt('New folder name:', currentName);
+            if (!newName || newName.trim() === currentName) return;
+            
+            try {
+                await apiFetch(`/api/v1/folders/${folderId}`, {
+                    method: 'PATCH',
+                    body: { name: newName.trim() }
+                });
+                showToast('Folder renamed', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } catch (err) {}
+        });
+    });
+
+    document.querySelectorAll('.delete-folder-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!confirm('Delete this folder and all its contents? This cannot be undone.')) return;
+            const folderId = btn.dataset.folderId;
+            
+            try {
+                await apiFetch(`/api/v1/folders/${folderId}`, {
+                    method: 'DELETE'
+                });
+                showToast('Folder deleted', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } catch (err) {}
+        });
+    });
+
+    // SECTION 16 — Admin admins page
+    document.querySelectorAll('.role-change-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const userId = btn.dataset.userId;
+            const newRole = btn.dataset.newRole;
+            
+            if (!confirm(`Change this user's role to ${newRole}?`)) return;
+            
+            try {
+                await apiFetch(`/api/v1/users/${userId}`, {
+                    method: 'PATCH',
+                    body: { role: newRole }
+                });
+                showToast('Role updated', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (err) {}
+        });
+    });
     
 });
