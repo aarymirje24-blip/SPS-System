@@ -1,290 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>
+    <%= title %>
+  </title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            color: #333;
-            line-height: 1.6;
-            background: #f8f9fa;
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      color: #333;
+      line-height: 1.6;
+      background: #f8f9fa;
+    }
 
-        header {
-            background: white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
+    header {
+      background: white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
 
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #5B21B6;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #5B21B6;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-        .logo-icon {
-            font-size: 1.75rem;
-        }
+    .logo-icon {
+      font-size: 1.75rem;
+    }
 
-        .nav-buttons {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
+    .nav-buttons {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
 
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 0.375rem;
-            font-size: 0.95rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.375rem;
+      font-size: 0.95rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
 
-        .btn-outline {
-            background: white;
-            color: #5B21B6;
-            border: 2px solid #5B21B6;
-        }
+    .btn-outline {
+      background: white;
+      color: #5B21B6;
+      border: 2px solid #5B21B6;
+    }
 
-        .btn-outline:hover {
-            background: #f3e8ff;
-        }
+    .btn-outline:hover {
+      background: #f3e8ff;
+    }
 
-        .btn-primary {
-            background: #5B21B6;
-            color: white;
-        }
+    .btn-primary {
+      background: #5B21B6;
+      color: white;
+    }
 
-        .btn-primary:hover {
-            background: #4c1d95;
-        }
+    .btn-primary:hover {
+      background: #4c1d95;
+    }
 
-        .btn-lg {
-            padding: 1rem 2rem;
-            font-size: 1.05rem;
-        }
+    .btn-lg {
+      padding: 1rem 2rem;
+      font-size: 1.05rem;
+    }
 
-        /* Hero Section */
-        .hero {
-            background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%);
-            color: white;
-            padding: 5rem 2rem;
-            text-align: center;
-        }
+    /* Hero Section */
+    .hero {
+      background: linear-gradient(135deg, #5B21B6 0%, #7C3AED 100%);
+      color: white;
+      padding: 5rem 2rem;
+      text-align: center;
+    }
 
-        .hero-container {
-            max-width: 900px;
-            margin: 0 auto;
-        }
+    .hero-container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
 
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            line-height: 1.2;
-        }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
 
-        .hero p {
-            font-size: 1.25rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-            line-height: 1.6;
-        }
+    .hero p {
+      font-size: 1.25rem;
+      margin-bottom: 2rem;
+      opacity: 0.95;
+      line-height: 1.6;
+    }
 
-        .cta-button {
-            background: white;
-            color: #5B21B6;
-            border: none;
-            padding: 1rem 2.5rem;
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
+    .cta-button {
+      background: white;
+      color: #5B21B6;
+      border: none;
+      padding: 1rem 2.5rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
 
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
+    .cta-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
 
-        /* Features Section */
-        .features {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 5rem 2rem;
-        }
+    /* Features Section */
+    .features {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 5rem 2rem;
+    }
 
-        .features h2 {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 3rem;
-            color: #333;
-        }
+    .features h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 3rem;
+      color: #333;
+    }
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 3rem;
-        }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 3rem;
+    }
 
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.07);
-            text-align: center;
-            transition: all 0.3s ease;
-        }
+    .feature-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+      text-align: center;
+      transition: all 0.3s ease;
+    }
 
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
-        }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
 
-        .feature-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
 
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 0.75rem;
-            color: #5B21B6;
-        }
+    .feature-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: #5B21B6;
+    }
 
-        .feature-card p {
-            color: #666;
-            line-height: 1.7;
-            font-size: 0.95rem;
-        }
+    .feature-card p {
+      color: #666;
+      line-height: 1.7;
+      font-size: 0.95rem;
+    }
 
-        /* Footer */
-        footer {
-            background: #1f2937;
-            color: white;
-            padding: 2rem;
-            text-align: center;
-            margin-top: 5rem;
-        }
+    /* Footer */
+    footer {
+      background: #1f2937;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 5rem;
+    }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.25rem;
-            }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.25rem;
+      }
 
-            .hero p {
-                font-size: 1.1rem;
-            }
+      .hero p {
+        font-size: 1.1rem;
+      }
 
-            .header-container {
-                flex-direction: column;
-                gap: 1rem;
-                text-align: center;
-            }
+      .header-container {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+      }
 
-            .nav-buttons {
-                flex-direction: column;
-                width: 100%;
-            }
+      .nav-buttons {
+        flex-direction: column;
+        width: 100%;
+      }
 
-            .nav-buttons .btn {
-                width: 100%;
-                text-align: center;
-            }
+      .nav-buttons .btn {
+        width: 100%;
+        text-align: center;
+      }
 
-            .features-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-        }
-    </style>
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-container">
-            <a href="/" class="logo">
-                <span class="logo-icon">📁</span>
-                SecureShare
-            </a>
-            <div class="nav-buttons">
-                <a href="/login" class="btn btn-outline">Sign In</a>
-                <a href="/register" class="btn btn-primary">Get Started</a>
-            </div>
-        </div>
-    </header>
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <a href="/" class="logo">
+        <span class="logo-icon">📁</span>
+        SecureShare
+      </a>
+      <div class="nav-buttons">
+        <a href="/login" class="btn btn-outline">Sign In</a>
+        <a href="/register" class="btn btn-primary">Get Started</a>
+      </div>
+    </div>
+  </header>
 
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-container">
-            <h1>Secure File Sharing for Your Organisation</h1>
-            <p>Enterprise-grade file storage with role-based access control, comprehensive audit trails, and seamless collaboration—all built for security and compliance.</p>
-            <a href="/register" class="cta-button">Get Started Free</a>
-        </div>
-    </section>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-container">
+      <h1>Secure File Sharing for Your Organisation</h1>
+      <p>Enterprise-grade file storage with role-based access control, comprehensive audit trails, and seamless
+        collaboration—all built for security and compliance.</p>
+      <a href="/register" class="cta-button">Get Started Free</a>
+    </div>
+  </section>
 
-    <!-- Features Section -->
-    <section class="features">
-        <h2>Powerful Features</h2>
-        <div class="features-grid">
-            <!-- Feature 1 -->
-            <div class="feature-card">
-                <div class="feature-icon">👥</div>
-                <h3>Role-Based Access</h3>
-                <p>Control who can view, edit, or download files with granular permission levels. Manage user roles from Super Admin down to regular users with precision.</p>
-            </div>
+  <!-- Features Section -->
+  <section class="features">
+    <h2>Powerful Features</h2>
+    <div class="features-grid">
+      <!-- Feature 1 -->
+      <div class="feature-card">
+        <div class="feature-icon">👥</div>
+        <h3>Role-Based Access</h3>
+        <p>Control who can view, edit, or download files with granular permission levels. Manage user roles from Super
+          Admin down to regular users with precision.</p>
+      </div>
 
-            <!-- Feature 2 -->
-            <div class="feature-card">
-                <div class="feature-icon">☁️</div>
-                <h3>Private File Storage</h3>
-                <p>All files are securely stored and delivered through Cloudinary. Rest assured knowing your organisation's sensitive data is protected with enterprise-grade infrastructure.</p>
-            </div>
+      <!-- Feature 2 -->
+      <div class="feature-card">
+        <div class="feature-icon">☁️</div>
+        <h3>Private File Storage</h3>
+        <p>All files are securely stored and delivered through Cloudinary. Rest assured knowing your organisation's
+          sensitive data is protected with enterprise-grade infrastructure.</p>
+      </div>
 
-            <!-- Feature 3 -->
-            <div class="feature-card">
-                <div class="feature-icon">📋</div>
-                <h3>Comprehensive Audit Trail</h3>
-                <p>Track every action: uploads, downloads, shares, and deletions. Maintain detailed activity logs for compliance and security investigations.</p>
-            </div>
-        </div>
-    </section>
+      <!-- Feature 3 -->
+      <div class="feature-card">
+        <div class="feature-icon">📋</div>
+        <h3>Comprehensive Audit Trail</h3>
+        <p>Track every action: uploads, downloads, shares, and deletions. Maintain detailed activity logs for compliance
+          and security investigations.</p>
+      </div>
+    </div>
+  </section>
 
-    <!-- Footer -->
-    <footer>
-        <p>&copy; 2026 SecureShare. All rights reserved.</p>
-    </footer>
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2026 SecureShare. All rights reserved.</p>
+  </footer>
 </body>
+
 </html>

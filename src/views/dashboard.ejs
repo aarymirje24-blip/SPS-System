@@ -3,7 +3,7 @@
     <h2>Welcome back, <%= user.full_name %>!</h2>
     <div style="margin-top: 1rem;">
         <p>Storage Used: <%= (Number(storage.used_bytes) / (1024 * 1024)).toFixed(2) %> MB / <%= storage.quota_mb %> MB</p>
-        <% const pct = Math.min(100, (Number(storage.used_bytes) / (storage.quota_mb * 1024 * 1024)) * 100); %>
+        <% const pct = Math.min(100, (Number(storage.used_bytes) / Number(storage.quota_bytes)) * 100); %>
         <div class="storage-bar" style="width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 0.5rem;">
         <%- `<div style="width: ${pct}%; background: var(--primary); height: 100%;"></div>` %>
         </div>

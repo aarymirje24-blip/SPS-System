@@ -1,63 +1,38 @@
-<%- include('../partials/admin-sidebar', { title: 'Manage Admins', user, currentPath }) %>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-    <h2>Manage Admins</h2>
-</div>
-
-<div class="card" style="padding: 0;">
-    <table style="margin-top: 0;">
+<%- include('../partials/admin-sidebar', { title, user, currentPath }) %>
+<div class="card">
+    <h2 style="margin-bottom: 1rem;">Manage Admins & Roles</h2>
+    <table style="width:100%; border-collapse:collapse;">
         <thead>
-            <tr>
-                <th>Name</th>
+            <tr style="text-align:left; border-bottom: 2px solid var(--border);">
+                <th style="padding:0.75rem;">Name</th>
                 <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
+                <th>Current Role</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <% if (users && users.length > 0) { %>
-                <% users.forEach(function(u) { %>
-                    <tr>
-                        <td style="font-weight: 500;"><%= u.full_name %></td>
-                        <td><%= u.email %></td>
-                        <td>
-                            <% if (u.role === 'super_admin') { %>
-                                <span class="badge" style="background: #3B2667; color: white;">Super Admin</span>
-                            <% } else if (u.role === 'admin') { %>
-                                <span class="badge badge-admin">Admin</span>
-                            <% } else { %>
-                                <span class="badge" style="background: var(--border); color: var(--text-main);">User</span>
-                            <% } %>
-                        </td>
-                        <td>
-                            <% if (u.is_active) { %>
-                                <span class="badge" style="background: #D1FAE5; color: #065F46;">Active</span>
-                            <% } else { %>
-                                <span class="badge" style="background: #FEE2E2; color: #991B1B;">Inactive</span>
-                            <% } %>
-                        </td>
-                        <td>
-                            <% if (u.role === 'super_admin') { %>
-                                <!-- No actions for super_admin -->
-                            <% } else if (u.role === 'admin') { %>
-                                <% if (u.id !== user.id) { %>
-                                    <button class="role-change-btn btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" data-user-id="<%= u.id %>" data-new-role="user">Demote to User</button>
-                                <% } else { %>
-                                    <span style="color: var(--text-muted); font-size: 0.75rem;">You</span>
-                                <% } %>
-                            <% } else { %>
-                                <% if (u.id !== user.id) { %>
-                                    <button class="role-change-btn btn" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" data-user-id="<%= u.id %>" data-new-role="admin">Promote to Admin</button>
-                                <% } else { %>
-                                    <span style="color: var(--text-muted); font-size: 0.75rem;">You</span>
-                                <% } %>
-                            <% } %>
-                        </td>
-                    </tr>
-                <% }); %>
-            <% } else { %>
-                <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>
-            <% } %>
+        <% users.forEach(function(u) { %>
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding:0.75rem;"><%= u.full_name %></td>
+                <td><%= u.email %></td>
+                <td>
+                    <span class="badge" style="background:<%= u.role === 'super_admin' ? '#1e3a5f' : u.role === 'admin' ? '#2563eb' : '#6b7280' %>; color:#fff; padding:0.25rem 0.75rem; border-radius:9999px; font-size:0.75rem;">
+                        <%= u.role %>
+                    </span>
+                </td>
+                <td>
+                    <% if (u.id !== user.id && u.role !== 'super_admin') { %>
+                        <% if (u.role === 'user') { %>
+                            <button class="role-change-btn btn" style="font-size:0.75rem;" data-user-id="<%= u.id %>" data-new-role="admin">Promote to Admin</button>
+                        <% } else if (u.role === 'admin') { %>
+                            <button class="role-change-btn btn btn-outline" style="font-size:0.75rem;" data-user-id="<%= u.id %>" data-new-role="user">Demote to User</button>
+                        <% } %>
+                    <% } else { %>
+                        <span style="color:var(--text-muted); font-size:0.75rem;">—</span>
+                    <% } %>
+                </td>
+            </tr>
+        <% }); %>
         </tbody>
     </table>
 </div>

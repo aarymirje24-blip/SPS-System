@@ -25,7 +25,7 @@ async function authRedirectMiddleware(req, res, next) {
 
         // Fetch user from database to ensure they are still active
         const result = await pool.query(
-            'SELECT id, org_id, role, full_name, email, is_active FROM users WHERE id = $1',
+            'SELECT id, org_id, role, full_name, email, is_active, avatar_url FROM users WHERE id = $1',
             [decoded.id]
         );
 

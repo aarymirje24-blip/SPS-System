@@ -1,6 +1,10 @@
 <%- include('../partials/header', { title, user, currentPath }) %>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h2><%= folder.name %></h2>
+    <div style="display: flex; gap: 1rem;">
+        <button id="new-folder-btn" class="btn" data-parent-id="<%= folder.id %>"><i data-lucide="folder-plus" style="width: 16px; height: 16px; vertical-align: middle;"></i> New Folder</button>
+        <button id="upload-btn" class="btn"><i data-lucide="upload" style="width: 16px; height: 16px; vertical-align: middle;"></i> Upload File</button>
+    </div>
 </div>
 
 <% if (breadcrumb && breadcrumb.length > 0) { %>

@@ -1,49 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><%= title %> — SecureShare</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-<link rel="stylesheet" href="/css/styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> — SecureShare Admin</title>
+    <meta name="csrf-token" content="<%= typeof csrfToken !== 'undefined' ? csrfToken : '' %>">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
-
-<div class="sidebar">
-  <div class="sidebar-logo">
-    <div class="logo-icon">📁</div>
-    SecureShare Admin
-  </div>
-  <nav>
-    <a href="/admin/dashboard" class="<%= currentPath === '/admin/dashboard' || currentPath === '/admin' ? 'active' : '' %>"><i class="fas fa-home"></i> Dashboard</a>
-    <a href="/admin/users" class="<%= currentPath && currentPath.startsWith('/admin/users') ? 'active' : '' %>"><i class="fas fa-users"></i> Manage Users</a>
-    <% if (user && user.role === 'super_admin') { %>
-    <a href="/admin/admins" class="<%= currentPath && currentPath.startsWith('/admin/admins') ? 'active' : '' %>"><i class="fas fa-user-shield"></i> Manage Admins</a>
-    <% } %>
-    <a href="/admin/files" class="<%= currentPath && currentPath.startsWith('/admin/files') ? 'active' : '' %>"><i class="fas fa-folder"></i> All Files</a>
-    <a href="/admin/audit-log" class="<%= currentPath && currentPath.startsWith('/admin/audit-log') ? 'active' : '' %>"><i class="fas fa-clipboard-list"></i> Activity Logs</a>
-    <% if (user && user.role === 'super_admin') { %>
-    <a href="/admin/org-settings" class="<%= currentPath && currentPath.startsWith('/admin/org-settings') ? 'active' : '' %>"><i class="fas fa-cog"></i> Settings</a>
-    <% } %>
-    <a href="/dashboard"><i class="fas fa-arrow-left"></i> Back to Files</a>
-  </nav>
-  <div class="sidebar-footer">
-    <button class="logout-btn" id="signout-btn">
-      <i class="fas fa-sign-out-alt"></i> Logout
-    </button>
-  </div>
-</div>
-
-<div class="main">
-  <div class="topbar">
-    <span class="topbar-title"><%= title %></span>
-    <div class="topbar-right">
-      <div class="user-chip">
-        <i class="fas fa-user-shield"></i>
-        <span><%= user.full_name %></span>
-      </div>
+<body class="admin-body">
+<div class="admin-wrapper">
+    <div class="sidebar">
+        <div class="sidebar-brand">SecureShare</div>
+        <nav class="sidebar-nav">
+            <a href="/admin" class="sidebar-link <%= currentPath === '/admin' ? 'active' : '' %>">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="/admin/users" class="sidebar-link <%= currentPath.startsWith('/admin/users') ? 'active' : '' %>">
+                <i class="fas fa-users"></i> Manage Users
+            </a>
+            <a href="/admin/files" class="sidebar-link <%= currentPath.startsWith('/admin/files') ? 'active' : '' %>">
+                <i class="fas fa-folder"></i> All Files
+            </a>
+            <a href="/admin/audit-log" class="sidebar-link <%= currentPath.startsWith('/admin/audit-log') ? 'active' : '' %>">
+                <i class="fas fa-clipboard-list"></i> Activity Logs
+            </a>
+            <% if (user.role === 'super_admin') { %>
+            <a href="/admin/org-settings" class="sidebar-link <%= currentPath.startsWith('/admin/org-settings') ? 'active' : '' %>">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <% } %>
+            <a href="/dashboard" class="sidebar-link">
+                <i class="fas fa-arrow-left"></i> Back to Files
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <button id="signout-btn" class="btn-signout">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
     </div>
-  </div>
-
-  <div class="content">
+    <div class="main">
+        <div class="topbar">
+            <h1 class="topbar-title"><%= title %></h1>
+            <div class="topbar-user"><%= user.full_name %></div>
+        </div>
+        <div class="content">

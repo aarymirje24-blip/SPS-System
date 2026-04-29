@@ -95,13 +95,21 @@ async function renderShared(req, res, next) {
 
 async function renderFileDetail(req, res, next) {
     try {
+        console.log('renderFileDetail called for id:', req.params.id, 'org:', req.user.org_id);
         const file = await fileModel.findById(req.params.id, req.user.org_id);
+        console.log('file result:', file ? 'found' : 'null');
+        
         if (!file) {
             return res.status(404).render('404', { title: 'File Not Found', user: req.user, currentPath: req.path });
         }
         
+        console.log('fetching shares...');
         const shares = await shareModel.findByFileId(file.id, req.user.org_id);
+        console.log('shares:', shares.length);
+        
+        console.log('fetching orgUsers...');
         const orgUsers = await userModel.findAllByOrg(req.user.org_id, { limit: 100 });
+        console.log('orgUsers:', orgUsers.users.length);
         
         res.render('files/detail', {
             title: file.original_name,
@@ -112,6 +120,7 @@ async function renderFileDetail(req, res, next) {
             orgUsers: orgUsers.users
         });
     } catch (error) {
+        console.error('CRASH in renderFileDetail:', error);
         next(error);
     }
 }

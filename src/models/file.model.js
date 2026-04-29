@@ -109,33 +109,38 @@ async function findAccessibleByUser(user_id, org_id, { page = 1, limit = 20, sea
 async function findAllByOrg(org_id, { page = 1, limit = 20, search, mime_type, uploaded_by } = {}) {
     const offset = (page - 1) * limit;
     const values = [org_id];
-    let query = `SELECT * FROM files WHERE org_id = $1 AND is_deleted = false`;
+    let query = `
+        SELECT f.*, u.full_name as uploader_name
+        FROM files f
+        JOIN users u ON f.uploaded_by = u.id
+        WHERE f.org_id = $1 AND f.is_deleted = false
+    `;
     let countQuery = `SELECT COUNT(*) as count FROM files WHERE org_id = $1 AND is_deleted = false`;
     let paramIndex = 2;
 
     if (search) {
         const searchPattern = '%' + search + '%';
-        query += ` AND original_name ILIKE $${paramIndex}`;
+        query += ` AND f.original_name ILIKE $${paramIndex}`;
         countQuery += ` AND original_name ILIKE $${paramIndex}`;
         values.push(searchPattern);
         paramIndex++;
     }
 
     if (mime_type) {
-        query += ` AND mime_type = $${paramIndex}`;
+        query += ` AND f.mime_type = $${paramIndex}`;
         countQuery += ` AND mime_type = $${paramIndex}`;
         values.push(mime_type);
         paramIndex++;
     }
 
     if (uploaded_by) {
-        query += ` AND uploaded_by = $${paramIndex}`;
+        query += ` AND f.uploaded_by = $${paramIndex}`;
         countQuery += ` AND uploaded_by = $${paramIndex}`;
         values.push(uploaded_by);
         paramIndex++;
     }
 
-    query += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    query += ` ORDER BY f.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
 
     const [rowsResult, countResult] = await Promise.all([
         pool.query(query, [...values, limit, offset]),
@@ -214,6 +219,7 @@ async function checkOrgStorage(org_id) {
     return {
         used_bytes: used_bytes.toString(),
         quota_bytes: quota_bytes.toString(),
+        quota_mb: quota_mb,
         has_space: used_bytes < quota_bytes
     };
 }

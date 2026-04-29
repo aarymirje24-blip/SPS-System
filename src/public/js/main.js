@@ -376,12 +376,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (adminResetPwdBtn) {
         adminResetPwdBtn.addEventListener('click', async () => {
             const userId = adminResetPwdBtn.dataset.userId;
-            const userName = adminResetPwdBtn.closest('.card').closest('.grid').querySelector('h2').textContent.match(/: (.+)$/)[1];
+            const userName = adminResetPwdBtn.dataset.userName || 'this user';
             
             if (!confirm(`Send password reset email to ${userName}?`)) return;
             
             try {
-                await apiFetch(`/api/v1/users/${userId}/reset-password`, { method: 'POST' });
+                await apiFetch(`/api/v1/users/${userId}/reset-password`, { method: 'PATCH' });
                 showToast('Reset email sent', 'success');
             } catch (err) {}
         });
@@ -499,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!folderName || folderName.trim() === '') return;
             
             const params = new URLSearchParams(window.location.search);
-            const parentId = params.get('folder_id');
+            const parentId = newFolderBtn.dataset.parentId || params.get('folder_id') || null;
             
             try {
                 await apiFetch('/api/v1/folders', {
