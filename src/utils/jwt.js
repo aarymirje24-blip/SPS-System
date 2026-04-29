@@ -8,6 +8,10 @@ function signAccessToken(payload) {
     });
 }
 
+// TODO: Phase 2 — refresh token endpoint
+// Refresh token functionality requires a new DB table and migration.
+// Uncomment these functions once the refresh token storage is implemented.
+/*
 function signRefreshToken(payload) {
     return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
         expiresIn: '30d',
@@ -15,17 +19,17 @@ function signRefreshToken(payload) {
     });
 }
 
+function verifyRefreshToken(token) {
+    return jwt.verify(token, env.JWT_REFRESH_SECRET);
+}
+*/
+
 function verifyAccessToken(token) {
     return jwt.verify(token, env.JWT_SECRET);
 }
 
-function verifyRefreshToken(token) {
-    return jwt.verify(token, env.JWT_REFRESH_SECRET);
-}
-
 module.exports = {
     signAccessToken,
-    signRefreshToken,
-    verifyAccessToken,
-    verifyRefreshToken
+    verifyAccessToken
+    // TODO: Add signRefreshToken, verifyRefreshToken back once Phase 2 is implemented
 };

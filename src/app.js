@@ -47,6 +47,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser(env.COOKIE_SECRET));
 
+// CSRF protection for view routes
+const csrf = require('csurf');
+const csrfProtection = csrf({ cookie: { httpOnly: true, sameSite: 'strict' } });
+
 // Morgan logging (only in non-test environments)
 if (env.NODE_ENV !== 'test') {
     app.use(morgan('combined'));
@@ -88,7 +92,7 @@ const viewRoutes = require('./routes/view.routes');
 const authRedirectMiddleware = require('./middleware/authRedirect.middleware');
 
 app.use('/', authViewRoutes);
-app.use('/', authRedirectMiddleware, viewRoutes);
+app.use('/', authRedirectMiddleware, csrfProtection, viewRoutes);
 
 // Set up EJS view engine
 app.set('views', path.join(__dirname, 'views'));

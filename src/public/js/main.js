@@ -3,6 +3,12 @@ async function apiFetch(url, options = {}) {
     options.credentials = 'include';
     options.headers = options.headers || {};
     
+    // Add CSRF token for non-GET requests
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    if (csrfMeta && options.method && options.method !== 'GET') {
+        options.headers['X-CSRF-Token'] = csrfMeta.getAttribute('content');
+    }
+    
     // Auto-set JSON content type if body is object (except FormData)
     if (options.body && !(options.body instanceof FormData) && typeof options.body === 'object') {
         options.headers['Content-Type'] = 'application/json';
@@ -568,5 +574,53 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {}
         });
     });
+
+    // SECTION 17 — Forgot password page
+    const forgotForm = document.getElementById('forgot-password-form');
+    if (forgotForm) {
+        forgotForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            
+            try {
+                await apiFetch('/api/v1/auth/forgot-password', {
+                    method: 'POST',
+                    body: { email }
+                });
+                // Show success message inline - don't redirect
+                const confirmMsg = document.getElementById('confirm-msg');
+                if (confirmMsg) {
+                    confirmMsg.textContent = 'If that email is registered, a reset link has been sent.';
+                    confirmMsg.style.display = 'block';
+                    forgotForm.style.display = 'none';
+                }
+            } catch (err) {}
+        });
+    }
+
+    // SECTION 17 — Reset password page
+    const resetForm = document.getElementById('reset-password-form');
+    if (resetForm) {
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const confirm_password = document.getElementById('confirm_password').value;
+            const token = document.getElementById('token').value;
+            
+            if (password !== confirm_password) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+            
+            try {
+                await apiFetch(`/api/v1/auth/reset-password/${token}`, {
+                    method: 'POST',
+                    body: { password }
+                });
+                showToast('Password reset! Redirecting...', 'success');
+                setTimeout(() => window.location.href = '/login', 1500);
+            } catch (err) {}
+        });
+    }
     
 });

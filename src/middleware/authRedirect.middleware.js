@@ -36,6 +36,7 @@ async function authRedirectMiddleware(req, res, next) {
         }
 
         req.user = user;
+        res.locals.csrfToken = req.csrfToken ? req.csrfToken() : '';
         next();
 
     } catch (error) {
