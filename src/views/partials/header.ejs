@@ -28,7 +28,7 @@
             <button id="notif-bell" style="background:none;border:none;cursor:pointer;"><i data-lucide="bell"></i></button>
             <% if (typeof user !== 'undefined') { %>
             <div class="avatar-dropdown">
-                <button id="avatar-btn"><%= user.full_name.charAt(0).toUpperCase() %></button>
+                <button id="avatar-btn"><%= (user.full_name || 'U').charAt(0).toUpperCase() %></button>
                 <div class="dropdown-menu" id="avatar-menu">
                     <a href="/profile">Profile</a>
                     <button id="signout-btn">Sign Out</button>

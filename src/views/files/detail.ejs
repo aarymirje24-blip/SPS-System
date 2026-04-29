@@ -38,7 +38,7 @@
             <p><strong>Size:</strong> <%= (file.size_bytes / 1024).toFixed(2) %> KB</p>
             <p><strong>Type:</strong> <%= file.mime_type %></p>
             <p><strong>Uploaded:</strong> <%= new Date(file.created_at).toLocaleString() %></p>
-            <% if (file.tags && file.tags.length > 0) { %>
+            <% if (Array.isArray(file.tags) && file.tags.length > 0) { %>
                 <p style="margin-top: 0.5rem;">
                     <% file.tags.forEach(function(tag) { %>
                         <span class="badge" style="background: var(--border); color: var(--text-main); margin-right: 0.25rem;"><%= tag %></span>

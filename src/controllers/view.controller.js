@@ -95,22 +95,23 @@ async function renderShared(req, res, next) {
 
 async function renderFileDetail(req, res, next) {
     try {
-        console.log('renderFileDetail called for id:', req.params.id, 'org:', req.user.org_id);
+        console.log('[FileDetail] Step 1 — findById', req.params.id);
         const file = await fileModel.findById(req.params.id, req.user.org_id);
-        console.log('file result:', file ? 'found' : 'null');
-        
+        console.log('[FileDetail] Step 2 — file:', file ? file.original_name : 'NULL');
+
         if (!file) {
             return res.status(404).render('404', { title: 'File Not Found', user: req.user, currentPath: req.path });
         }
-        
-        console.log('fetching shares...');
+
+        console.log('[FileDetail] Step 3 — findByFileId');
         const shares = await shareModel.findByFileId(file.id, req.user.org_id);
-        console.log('shares:', shares.length);
-        
-        console.log('fetching orgUsers...');
+        console.log('[FileDetail] Step 4 — shares count:', shares.length);
+
+        console.log('[FileDetail] Step 5 — findAllByOrg');
         const orgUsers = await userModel.findAllByOrg(req.user.org_id, { limit: 100 });
-        console.log('orgUsers:', orgUsers.users.length);
-        
+        console.log('[FileDetail] Step 6 — orgUsers count:', orgUsers.users.length);
+
+        console.log('[FileDetail] Step 7 — rendering files/detail');
         res.render('files/detail', {
             title: file.original_name,
             user: req.user,
@@ -119,8 +120,11 @@ async function renderFileDetail(req, res, next) {
             shares,
             orgUsers: orgUsers.users
         });
+        console.log('[FileDetail] Step 8 — render called OK');
     } catch (error) {
-        console.error('CRASH in renderFileDetail:', error);
+        console.error('[FileDetail] *** CRASH ***');
+        console.error('  Message:', error.message);
+        console.error('  Stack:', error.stack);
         next(error);
     }
 }
