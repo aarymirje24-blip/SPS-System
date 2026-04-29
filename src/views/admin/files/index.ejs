@@ -1,4 +1,4 @@
-<%- include('../../partials/header', { title, user, currentPath }) %>
+<%- include('../../partials/admin-sidebar', { title: 'All Organisation Files', user, currentPath }) %>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h2>All Organisation Files</h2>
 </div>
@@ -48,4 +48,4 @@
       <% if (pagination.hasNext) { %><a href="<%= pagination.nextUrl %>" class="btn btn-outline">Next →</a><% } %>
     </div>
 <% } %>
-<%- include('../../partials/footer') %>
+<%- include('../../partials/admin-footer') %>

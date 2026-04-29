@@ -364,5 +364,125 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // SECTION 12 — Admin user detail page
+    const adminResetPwdBtn = document.getElementById('admin-reset-pwd-btn');
+    if (adminResetPwdBtn) {
+        adminResetPwdBtn.addEventListener('click', async () => {
+            const userId = adminResetPwdBtn.dataset.userId;
+            const userName = adminResetPwdBtn.closest('.card').closest('.grid').querySelector('h2').textContent.match(/: (.+)$/)[1];
+            
+            if (!confirm(`Send password reset email to ${userName}?`)) return;
+            
+            try {
+                await apiFetch(`/api/v1/users/${userId}/reset-password`, { method: 'POST' });
+                showToast('Reset email sent', 'success');
+            } catch (err) {}
+        });
+    }
+
+    const toggleActiveBtn = document.getElementById('toggle-active-btn');
+    if (toggleActiveBtn) {
+        toggleActiveBtn.addEventListener('click', async () => {
+            const userId = toggleActiveBtn.dataset.userId;
+            const currentState = toggleActiveBtn.dataset.currentState === 'true';
+            const action = currentState ? 'Deactivate' : 'Activate';
+            
+            if (!confirm(`${action} this user?`)) return;
+            
+            try {
+                await apiFetch(`/api/v1/users/${userId}`, {
+                    method: 'PATCH',
+                    body: { is_active: !currentState }
+                });
+                showToast(action + ' successful', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (err) {}
+        });
+    }
+
+    const roleSelect = document.getElementById('role-select');
+    if (roleSelect) {
+        const originalRole = roleSelect.value;
+        roleSelect.addEventListener('change', async () => {
+            const userId = roleSelect.dataset.userId;
+            const newRole = roleSelect.value;
+            
+            if (!confirm(`Change role to ${newRole}?`)) {
+                roleSelect.value = originalRole;
+                return;
+            }
+            
+            try {
+                await apiFetch(`/api/v1/users/${userId}`, {
+                    method: 'PATCH',
+                    body: { role: newRole }
+                });
+                showToast('Role updated', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } catch (err) {
+                roleSelect.value = originalRole;
+            }
+        });
+    }
+
+    // SECTION 13 — Org settings form
+    const orgForm = document.getElementById('org-settings-form');
+    if (orgForm) {
+        orgForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const orgName = document.getElementById('org_name').value;
+            const storageQuotaMb = document.getElementById('storage_quota_mb').value;
+            
+            try {
+                await apiFetch('/api/v1/org/settings', {
+                    method: 'PATCH',
+                    body: { name: orgName, storage_quota_mb: parseInt(storageQuotaMb) }
+                });
+                showToast('Settings saved', 'success');
+            } catch (err) {}
+        });
+    }
+
+    // SECTION 14 — Profile page
+    const profileForm = document.getElementById('profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const full_name = document.getElementById('profile_full_name').value;
+            
+            try {
+                await apiFetch('/api/v1/users/me/profile', {
+                    method: 'PATCH',
+                    body: { full_name }
+                });
+                showToast('Profile updated', 'success');
+            } catch (err) {}
+        });
+    }
+
+    const changePwdForm = document.getElementById('change-password-form');
+    if (changePwdForm) {
+        changePwdForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const current_password = document.getElementById('current_password').value;
+            const new_password = document.getElementById('new_password').value;
+            const confirm_new_password = document.getElementById('confirm_new_password').value;
+            
+            if (new_password !== confirm_new_password) {
+                showToast('Passwords do not match', 'error');
+                return;
+            }
+            
+            try {
+                await apiFetch('/api/v1/users/me/password', {
+                    method: 'PATCH',
+                    body: { current_password, new_password }
+                });
+                showToast('Password updated', 'success');
+                changePwdForm.reset();
+            } catch (err) {}
+        });
+    }
     
 });

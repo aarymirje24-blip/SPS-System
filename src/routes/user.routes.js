@@ -7,6 +7,7 @@ const uploadMiddleware = require('../middleware/upload.middleware');
 
 router.get('/me/profile', userController.getMyProfile);
 router.patch('/me/profile', ...uploadMiddleware.single, userController.updateMyProfile);
+router.patch('/me/password', userController.changeMyPassword);
 
 router.get('/', requireRole('admin', 'super_admin'), userController.listUsers);
 router.post('/invite', requireRole('admin', 'super_admin'), userController.inviteUser);

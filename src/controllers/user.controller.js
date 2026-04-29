@@ -231,6 +231,31 @@ async function updateMyProfile(req, res, next) {
     }
 }
 
+async function changeMyPassword(req, res, next) {
+    try {
+        const { current_password, new_password } = req.body;
+        if (!current_password || !new_password) {
+            return res.status(400).json({ success: false, message: 'Both current and new password are required' });
+        }
+        if (new_password.length < 8) {
+            return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' });
+        }
+        // Fetch full user with password_hash
+        const result = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.user.id]);
+        const user = result.rows[0];
+        const match = await bcrypt.compare(current_password, user.password_hash);
+        if (!match) {
+            return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+        }
+        const hash = await bcrypt.hash(new_password, 12);
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.user.id]);
+        await auditModel.log({ org_id: req.user.org_id, actor_id: req.user.id, action: 'PASSWORD_CHANGED', resource_type: 'user', resource_id: req.user.id });
+        return res.status(200).json({ success: true, message: 'Password updated' });
+    } catch (error) {
+        next(error);
+    }
+}
+
 module.exports = {
     listUsers,
     getUser,
@@ -239,5 +264,6 @@ module.exports = {
     adminResetPassword,
     deleteUser,
     getMyProfile,
-    updateMyProfile
+    updateMyProfile,
+    changeMyPassword
 };

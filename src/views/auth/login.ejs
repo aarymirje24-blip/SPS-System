@@ -2,34 +2,200 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %> — SecureShare</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: 'Poppins', sans-serif; background: #f0f4f8; min-height: 100vh; }
+    
+      .topbar {
+        background: #1565c0;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+      }
+    
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 42px);
+        padding: 20px;
+      }
+    
+      .card {
+        background: white;
+        border-radius: 10px;
+        padding: 40px 35px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        animation: fadeIn 0.35s ease;
+      }
+    
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    
+      .card h2 {
+        color: #1565c0;
+        font-size: 22px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 8px;
+      }
+    
+      .card .subtitle {
+        text-align: center;
+        font-size: 13px;
+        color: #888;
+        margin-bottom: 28px;
+        line-height: 1.5;
+      }
+    
+      .form-group {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 20px;
+        padding-bottom: 8px;
+        gap: 10px;
+        transition: border-color 0.2s;
+      }
+    
+      .form-group:focus-within { border-color: #1565c0; }
+    
+      .form-group i {
+        color: #1565c0;
+        font-size: 16px;
+        width: 20px;
+        flex-shrink: 0;
+      }
+    
+      .form-group input {
+        border: none;
+        outline: none;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
+        color: #555;
+        width: 100%;
+        background: transparent;
+      }
+    
+      .btn-primary {
+        width: 100%;
+        background: #1565c0;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        font-family: 'Poppins', sans-serif;
+        transition: background 0.2s, transform 0.1s;
+      }
+    
+      .btn-primary:hover { background: #0d47a1; }
+      .btn-primary:active { transform: scale(0.98); }
+    
+      .links {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 16px;
+        font-size: 12px;
+      }
+    
+      .links a { color: #1565c0; text-decoration: none; cursor: pointer; }
+      .links a:hover { text-decoration: underline; }
+    
+      .alert {
+        padding: 10px 14px;
+        border-radius: 6px;
+        font-size: 13px;
+        margin-bottom: 18px;
+        display: none;
+      }
+      .alert.error   { background: #fce4ec; color: #c62828; border-left: 3px solid #e53935; }
+      .alert.show    { display: block; }
+    
+      .icon-email::before { content: "📧"; }
+      .icon-lock::before  { content: "🔒"; }
+      
+      .password-wrapper {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+      }
+      .toggle-pwd {
+        position: absolute;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        font-size: 12px;
+        background: none;
+        border: none;
+        color: #1565c0;
+        font-weight: 500;
+      }
+    </style>
 </head>
 <body>
-    <div class="auth-container">
-        <div class="card auth-card">
-            <h2>Sign In to SecureShare</h2>
-            <br>
-            <div id="login-error" style="color:var(--danger);margin-bottom:1rem;display:none;"></div>
-            <form id="login-form">
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="email" required>
-                </div>
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" id="login-btn" class="btn" style="width:100%;">Sign In</button>
-            </form>
-            <div style="margin-top: 1rem; text-align: center;">
-                <a href="/forgot-password" style="font-size:0.875rem;">Forgot Password?</a> | 
-                <a href="/register" style="font-size:0.875rem;">Create Organisation</a>
-            </div>
+
+<div class="topbar">🔐 Secure File Sharing</div>
+
+<div class="container">
+  <div class="card">
+    <h2>Welcome Back</h2>
+    <p class="subtitle">Sign in with your email and password</p>
+
+    <div class="alert error" id="login-error"></div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <i class="icon-email"></i>
+        <input type="email" id="email" placeholder="Email Address" required autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <i class="icon-lock"></i>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
+          <span class="toggle-pwd" onclick="togglePassword('password', this)">Show</span>
         </div>
+      </div>
+
+      <button type="submit" id="login-btn" class="btn-primary">Sign In</button>
+    </form>
+
+    <div class="links">
+      <a href="/forgot-password">Forgot Password?</a>
+      <a href="/register">Create Organisation</a>
     </div>
-    <div id="toast-container"></div>
-    <script src="/js/main.js"></script>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="/js/main.js"></script>
+<script>
+  function togglePassword(inputId, btnElement) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btnElement.textContent = 'Hide';
+    } else {
+      input.type = 'password';
+      btnElement.textContent = 'Show';
+    }
+  }
+</script>
 </body>
 </html>

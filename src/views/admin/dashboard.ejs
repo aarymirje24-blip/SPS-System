@@ -1,53 +1,62 @@
-<%- include('../partials/header', { title, user, currentPath }) %>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-    <h2>Admin Dashboard</h2>
-</div>
+<%- include('../partials/admin-sidebar', { title, user, currentPath }) %>
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-icon-wrap blue"><i class="fas fa-users"></i></div>
+        <div class="stat-info">
+          <div class="stat-num"><%= stats.user_count %></div>
+          <div class="stat-label">Active Users</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap green"><i class="fas fa-file-alt"></i></div>
+        <div class="stat-info">
+          <div class="stat-num"><%= stats.file_count %></div>
+          <div class="stat-label">Total Files</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap orange"><i class="fas fa-hdd"></i></div>
+        <div class="stat-info">
+          <div class="stat-num"><%= (Number(stats.used_bytes) / (1024 * 1024)).toFixed(2) %> MB</div>
+          <div class="stat-label">Storage Used</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap purple"><i class="fas fa-envelope-open-text"></i></div>
+        <div class="stat-info">
+          <div class="stat-num"><%= stats.pending_invitations %></div>
+          <div class="stat-label">Pending Invites</div>
+        </div>
+      </div>
+    </div>
 
-<div class="grid grid-cols-4" style="margin-bottom: 2rem;">
-    <div class="card" style="text-align: center;">
-        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= stats.user_count %></div>
-        <div style="color: var(--text-muted); font-size: 0.875rem;">Active Users</div>
+    <!-- Activity Log -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-history"></i> Recent Activity</span>
+        <a href="/admin/audit-log" class="card-link">View All →</a>
+      </div>
+      <% if (recentLogs && recentLogs.length > 0) { %>
+        <% recentLogs.forEach(function(log) { 
+            let dotClass = 'default';
+            let icon = 'fas fa-bolt';
+            if (log.action.includes('login')) { dotClass = 'login'; icon = 'fas fa-sign-in-alt'; }
+            else if (log.action.includes('upload') || log.action.includes('create')) { dotClass = 'upload'; icon = 'fas fa-upload'; }
+            else if (log.action.includes('share')) { dotClass = 'share'; icon = 'fas fa-share'; }
+            else if (log.action.includes('delete')) { dotClass = 'delete'; icon = 'fas fa-trash'; }
+        %>
+          <div class="activity-item">
+            <div class="activity-dot <%= dotClass %>"><i class="<%= icon %>"></i></div>
+            <div class="activity-text">
+              <strong><%= log.actor_name %></strong>
+              <p><%= log.action %> on <%= log.resource_type %> (<%= log.resource_id %>)</p>
+            </div>
+            <span class="activity-time"><%= new Date(log.created_at).toLocaleString() %></span>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <div style="padding: 20px; text-align: center; color: #64748b; font-size: 13px;">No activity recorded.</div>
+      <% } %>
     </div>
-    <div class="card" style="text-align: center;">
-        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= stats.file_count %></div>
-        <div style="color: var(--text-muted); font-size: 0.875rem;">Total Files</div>
-    </div>
-    <div class="card" style="text-align: center;">
-        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= (Number(stats.used_bytes) / (1024 * 1024)).toFixed(2) %> MB</div>
-        <div style="color: var(--text-muted); font-size: 0.875rem;">Storage Used</div>
-    </div>
-    <div class="card" style="text-align: center;">
-        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= stats.pending_invitations %></div>
-        <div style="color: var(--text-muted); font-size: 0.875rem;">Pending Invites</div>
-    </div>
-</div>
-
-<h3>Recent Activity</h3>
-<br>
-<div class="card" style="padding: 0;">
-    <table style="margin-top: 0;">
-        <thead>
-            <tr>
-                <th>Action</th>
-                <th>Actor</th>
-                <th>Resource</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody>
-            <% if (recentLogs && recentLogs.length > 0) { %>
-                <% recentLogs.forEach(function(log) { %>
-                    <tr>
-                        <td><span class="badge" style="background: #E0E7FF; color: #4338CA;"><%= log.action %></span></td>
-                        <td><%= log.actor_name %></td>
-                        <td><%= log.resource_type %> (<%= log.resource_id %>)</td>
-                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= new Date(log.created_at).toLocaleString() %></td>
-                    </tr>
-                <% }); %>
-            <% } else { %>
-                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No activity recorded.</td></tr>
-            <% } %>
-        </tbody>
-    </table>
-</div>
-<%- include('../partials/footer') %>
+<%- include('../partials/admin-footer') %>

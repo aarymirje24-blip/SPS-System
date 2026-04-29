@@ -1,4 +1,4 @@
-<%- include('../../partials/header', { title, user, currentPath }) %>
+<%- include('../../partials/admin-sidebar', { title: 'Manage Users', user, currentPath }) %>
 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
     <h2>Manage Users</h2>
     <button id="invite-btn" class="btn"><i data-lucide="user-plus" style="width: 16px; height: 16px; vertical-align: middle;"></i> Invite User</button>
@@ -95,4 +95,4 @@
         </form>
     </div>
 </div>
-<%- include('../../partials/footer') %>
+<%- include('../../partials/admin-footer') %>

@@ -1,44 +1,68 @@
-<%- include('../partials/header', { title, user, currentPath }) %>
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-    <h2>Audit Log</h2>
-</div>
+<%- include('../partials/admin-sidebar', { title: 'Activity Logs', user, currentPath }) %>
+    <div class="toolbar">
+      <form action="/admin/audit-log" method="GET" class="search-wrap">
+        <i class="fas fa-search"></i>
+        <input class="search-input" name="action" type="text" placeholder="Search logs by action…">
+      </form>
+    </div>
 
-<div class="card" style="padding: 0;">
-    <table style="margin-top: 0;">
+    <div class="table-card">
+      <div class="table-card-header">
+        <span class="table-card-title"><i class="fas fa-history"></i> System Activity</span>
+        <span class="record-count"><%= pagination.total %> entries</span>
+      </div>
+      <table>
         <thead>
-            <tr>
-                <th>Action</th>
-                <th>Actor</th>
-                <th>Resource</th>
-                <th>IP Address</th>
-                <th>Time</th>
-            </tr>
+          <tr>
+            <th>User</th>
+            <th>Action</th>
+            <th>Details</th>
+            <th>IP Address</th>
+            <th>Timestamp</th>
+          </tr>
         </thead>
         <tbody>
             <% if (logs && logs.length > 0) { %>
-                <% logs.forEach(function(log) { %>
-                    <tr>
-                        <td><span class="badge" style="background: #E0E7FF; color: #4338CA;"><%= log.action %></span></td>
-                        <td style="font-weight: 500;"><%= log.actor_name %></td>
-                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= log.resource_type %> (<%= log.resource_id %>)</td>
-                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= log.meta && log.meta.ip ? log.meta.ip : 'N/A' %></td>
-                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= new Date(log.created_at).toLocaleString() %></td>
-                    </tr>
+                <% logs.forEach(function(log) { 
+                    let badgeClass = 'action-default';
+                    let icon = 'fas fa-bolt';
+                    if (log.action.includes('login')) { badgeClass = 'action-login'; icon = 'fas fa-sign-in-alt'; }
+                    else if (log.action.includes('upload') || log.action.includes('create')) { badgeClass = 'action-upload'; icon = 'fas fa-upload'; }
+                    else if (log.action.includes('share')) { badgeClass = 'action-share'; icon = 'fas fa-share'; }
+                    else if (log.action.includes('delete')) { badgeClass = 'action-delete'; icon = 'fas fa-trash'; }
+                    else if (log.action.includes('download')) { badgeClass = 'action-download'; icon = 'fas fa-download'; }
+                %>
+                  <tr>
+                    <td>
+                      <div class="user-cell">
+                        <div class="avatar avatar-blue"><%= log.actor_name ? log.actor_name.charAt(0).toUpperCase() : 'U' %></div>
+                        <div><div class="user-name"><%= log.actor_name %></div></div>
+                      </div>
+                    </td>
+                    <td><span class="action-badge <%= badgeClass %>"><i class="<%= icon %>"></i> <%= log.action %></span></td>
+                    <td><%= log.resource_type %> (<%= log.resource_id %>)</td>
+                    <td><span class="ip-addr"><%= log.meta && log.meta.ip ? log.meta.ip : 'N/A' %></span></td>
+                    <td><span class="timestamp"><%= new Date(log.created_at).toLocaleString() %></span></td>
+                  </tr>
                 <% }); %>
             <% } else { %>
-                <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No audit logs found.</td></tr>
+                <tr>
+                    <td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No audit logs found.</td>
+                </tr>
             <% } %>
         </tbody>
-    </table>
-</div>
-
-<% if (pagination.totalPages > 1) { %>
-    <div class="pagination" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;">
-      <% if (pagination.hasPrev) { %><a href="<%= pagination.prevUrl %>" class="btn btn-outline">← Previous</a><% } %>
-      <% pagination.pages.forEach(p => { %>
-        <a href="<%= p.url %>" class="btn <%= p.isCurrent ? '' : 'btn-outline' %>"><%= p.number %></a>
-      <% }) %>
-      <% if (pagination.hasNext) { %><a href="<%= pagination.nextUrl %>" class="btn btn-outline">Next →</a><% } %>
+      </table>
     </div>
-<% } %>
-<%- include('../partials/footer') %>
+
+    <% if (pagination && pagination.totalPages > 1) { %>
+        <div class="pagination" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;">
+          <% if (pagination.hasPrev) { %><a href="<%= pagination.prevUrl %>" class="page-link">← Previous</a><% } %>
+          <% pagination.pages.forEach(p => { %>
+            <a href="<%= p.url %>" class="page-link <%= p.isCurrent ? 'active' : '' %>"><%= p.number %></a>
+          <% }) %>
+          <% if (pagination.hasNext) { %><a href="<%= pagination.nextUrl %>" class="page-link">Next →</a><% } %>
+        </div>
+    <% } %>
+  </div>
+</div>
+<%- include('../partials/admin-footer') %>
