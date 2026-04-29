@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><%= title %> — SecureShare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="card auth-card">
+            <h2>Create Organisation</h2>
+            <br>
+            <form id="register-form">
+                <div class="form-group">
+                    <label>Organisation Name</label>
+                    <input type="text" id="org_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" id="confirm_password" required>
+                </div>
+                <button type="submit" class="btn" style="width:100%;">Create Account</button>
+            </form>
+            <div style="margin-top: 1rem; text-align: center;">
+                <a href="/login" style="font-size:0.875rem;">Already have an account? Sign In</a>
+            </div>
+        </div>
+    </div>
+    <div id="toast-container"></div>
+    <script src="/js/main.js"></script>
+</body>
+</html>

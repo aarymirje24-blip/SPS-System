@@ -1,0 +1,33 @@
+<%- include('../partials/header', { title, user, currentPath }) %>
+<h2>Shared With Me</h2>
+<br>
+<table>
+    <thead>
+        <tr>
+            <th>File Name</th>
+            <th>Shared By</th>
+            <th>Owner</th>
+            <th>Date Shared</th>
+        </tr>
+    </thead>
+    <tbody>
+        <% if (files && files.length > 0) { %>
+            <% files.forEach(function(file) { %>
+                <tr>
+                    <td>
+                        <a href="/files/<%= file.id %>" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: var(--primary); font-weight: 500;">
+                            <i data-lucide="file" style="width: 16px; height: 16px;"></i>
+                            <%= file.original_name %>
+                        </a>
+                    </td>
+                    <td><%= file.shared_by_name %></td>
+                    <td><%= file.uploader_name %></td>
+                    <td><%= new Date(file.created_at).toLocaleDateString() %></td>
+                </tr>
+            <% }); %>
+        <% } else { %>
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No files have been shared with you.</td></tr>
+        <% } %>
+    </tbody>
+</table>
+<%- include('../partials/footer') %>

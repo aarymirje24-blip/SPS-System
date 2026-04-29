@@ -1,0 +1,94 @@
+<%- include('../partials/header', { title, user, currentPath }) %>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>My Files</h2>
+    <button id="upload-btn" class="btn"><i data-lucide="upload" style="width: 16px; height: 16px; vertical-align: middle;"></i> Upload</button>
+</div>
+
+<% if (breadcrumb && breadcrumb.length > 0) { %>
+    <div style="margin-bottom: 1rem; font-size: 0.875rem;">
+        <a href="/files" style="text-decoration: none; color: var(--primary);">Root</a>
+        <% breadcrumb.forEach(function(crumb) { %>
+            <span style="color: var(--text-muted); margin: 0 0.25rem;">/</span>
+            <a href="/folders/<%= crumb.id %>" style="text-decoration: none; color: var(--primary);"><%= crumb.name %></a>
+        <% }); %>
+    </div>
+<% } %>
+
+<% if (folders && folders.length > 0) { %>
+    <h4 style="margin-bottom: 0.5rem; color: var(--text-muted);">Folders</h4>
+    <div class="grid grid-cols-4" style="margin-bottom: 2rem;">
+        <% folders.forEach(function(folder) { %>
+            <a href="/folders/<%= folder.id %>" class="folder-card">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="folder" style="color: #FCD34D;"></i>
+                    <span style="font-weight: 500; font-size: 0.875rem;"><%= folder.name %></span>
+                </div>
+            </a>
+        <% }); %>
+    </div>
+<% } %>
+
+<h4 style="margin-bottom: 0.5rem; color: var(--text-muted);">Files</h4>
+<div class="grid grid-cols-4">
+    <% if (files && files.length > 0) { %>
+        <% files.forEach(function(file) { %>
+            <div class="file-card" style="position: relative;">
+                <a href="/files/<%= file.id %>" style="text-decoration: none; color: inherit; display: block;">
+                    <div style="margin-bottom: 0.5rem;"><i data-lucide="file" style="color: var(--primary);"></i></div>
+                    <div style="font-weight: 500; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= file.original_name %></div>
+                    <div style="color: var(--text-muted); font-size: 0.75rem;"><%= (file.size_bytes / 1024).toFixed(1) %> KB • <%= new Date(file.created_at).toLocaleDateString() %></div>
+                </a>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <p style="color: var(--text-muted); grid-column: span 4;">No files found.</p>
+    <% } %>
+</div>
+
+<% if (pagination.totalPages > 1) { %>
+    <div class="pagination" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;">
+      <% if (pagination.hasPrev) { %><a href="<%= pagination.prevUrl %>" class="btn btn-outline">← Previous</a><% } %>
+      <% pagination.pages.forEach(p => { %>
+        <a href="<%= p.url %>" class="btn <%= p.isCurrent ? '' : 'btn-outline' %>"><%= p.number %></a>
+      <% }) %>
+      <% if (pagination.hasNext) { %><a href="<%= pagination.nextUrl %>" class="btn btn-outline">Next →</a><% } %>
+    </div>
+<% } %>
+
+<!-- Upload Modal -->
+<div id="upload-modal" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Upload File</h3>
+            <button id="close-upload-modal" style="background:none;border:none;cursor:pointer;"><i data-lucide="x"></i></button>
+        </div>
+        <form id="upload-form">
+            <div class="form-group">
+                <label>Select File</label>
+                <input type="file" id="upload-file" required>
+            </div>
+            <div class="form-group">
+                <label>Folder (Optional)</label>
+                <select id="upload-folder">
+                    <option value="">-- Root --</option>
+                    <% if (folders) { folders.forEach(function(f) { %>
+                        <option value="<%= f.id %>"><%= f.name %></option>
+                    <% })} %>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tags (comma separated)</label>
+                <input type="text" id="upload-tags" placeholder="e.g. invoice, report">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="upload-desc">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <progress id="upload-progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Upload</button>
+        </form>
+    </div>
+</div>
+<%- include('../partials/footer') %>

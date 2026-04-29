@@ -1,0 +1,19 @@
+<%- include('../partials/header', { title, user, currentPath }) %>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Organisation Settings</h2>
+</div>
+
+<div class="card" style="max-width: 600px;">
+    <form id="org-settings-form">
+        <div class="form-group">
+            <label>Organisation Name</label>
+            <input type="text" id="org_name" value="<%= org.name %>" required>
+        </div>
+        <div class="form-group">
+            <label>Storage Quota (MB)</label>
+            <input type="number" id="storage_quota_mb" value="<%= org.storage_quota_mb %>" required>
+        </div>
+        <button type="submit" class="btn">Save Settings</button>
+    </form>
+</div>
+<%- include('../partials/footer') %>

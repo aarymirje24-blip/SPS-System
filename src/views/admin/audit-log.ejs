@@ -1,0 +1,44 @@
+<%- include('../partials/header', { title, user, currentPath }) %>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Audit Log</h2>
+</div>
+
+<div class="card" style="padding: 0;">
+    <table style="margin-top: 0;">
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Actor</th>
+                <th>Resource</th>
+                <th>IP Address</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (logs && logs.length > 0) { %>
+                <% logs.forEach(function(log) { %>
+                    <tr>
+                        <td><span class="badge" style="background: #E0E7FF; color: #4338CA;"><%= log.action %></span></td>
+                        <td style="font-weight: 500;"><%= log.actor_name %></td>
+                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= log.resource_type %> (<%= log.resource_id %>)</td>
+                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= log.meta && log.meta.ip ? log.meta.ip : 'N/A' %></td>
+                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= new Date(log.created_at).toLocaleString() %></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No audit logs found.</td></tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+
+<% if (pagination.totalPages > 1) { %>
+    <div class="pagination" style="margin-top: 2rem; display: flex; justify-content: center; gap: 0.5rem;">
+      <% if (pagination.hasPrev) { %><a href="<%= pagination.prevUrl %>" class="btn btn-outline">← Previous</a><% } %>
+      <% pagination.pages.forEach(p => { %>
+        <a href="<%= p.url %>" class="btn <%= p.isCurrent ? '' : 'btn-outline' %>"><%= p.number %></a>
+      <% }) %>
+      <% if (pagination.hasNext) { %><a href="<%= pagination.nextUrl %>" class="btn btn-outline">Next →</a><% } %>
+    </div>
+<% } %>
+<%- include('../partials/footer') %>

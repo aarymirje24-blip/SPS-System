@@ -1,0 +1,84 @@
+<%- include('partials/header', { title, user, currentPath }) %>
+<div class="card" style="margin-bottom: 2rem;">
+    <h2>Welcome back, <%= user.full_name %>!</h2>
+    <div style="margin-top: 1rem;">
+        <p>Storage Used: <%= (Number(storage.used_bytes) / (1024 * 1024)).toFixed(2) %> MB / <%= storage.quota_mb %> MB</p>
+        <% const pct = Math.min(100, (Number(storage.used_bytes) / (storage.quota_mb * 1024 * 1024)) * 100); %>
+        <div class="storage-bar" style="width: 100%; background: var(--border); height: 8px; border-radius: 4px; overflow: hidden; margin-top: 0.5rem;">
+        <%- `<div style="width: ${pct}%; background: var(--primary); height: 100%;"></div>` %>
+        </div>
+    </div>
+</div>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h3>Recent Files</h3>
+    <button id="upload-btn" class="btn"><i data-lucide="upload" style="width: 16px; height: 16px; vertical-align: middle;"></i> Upload File</button>
+</div>
+
+<div class="grid grid-cols-4" style="margin-bottom: 2rem;">
+    <% if (recentFiles && recentFiles.length > 0) { %>
+        <% recentFiles.forEach(function(file) { %>
+            <a href="/files/<%= file.id %>" class="file-card">
+                <div style="margin-bottom: 0.5rem;"><i data-lucide="file" style="color: var(--primary);"></i></div>
+                <div style="font-weight: 500; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><%= file.original_name %></div>
+                <div style="color: var(--text-muted); font-size: 0.75rem;"><%= (file.size_bytes / 1024).toFixed(1) %> KB • <%= new Date(file.created_at).toLocaleDateString() %></div>
+            </a>
+        <% }); %>
+    <% } else { %>
+        <p style="color: var(--text-muted); grid-column: span 4;">No recent files.</p>
+    <% } %>
+</div>
+
+<h3 style="margin-bottom: 1rem;">Root Folders</h3>
+<div class="grid grid-cols-4">
+    <% if (rootFolders && rootFolders.length > 0) { %>
+        <% rootFolders.forEach(function(folder) { %>
+            <a href="/folders/<%= folder.id %>" class="folder-card">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="folder" style="color: #FCD34D;"></i>
+                    <span style="font-weight: 500; font-size: 0.875rem;"><%= folder.name %></span>
+                </div>
+            </a>
+        <% }); %>
+    <% } else { %>
+        <p style="color: var(--text-muted); grid-column: span 4;">No folders found.</p>
+    <% } %>
+</div>
+
+<!-- Upload Modal -->
+<div id="upload-modal" class="modal">
+    <div class="modal-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3>Upload File</h3>
+            <button id="close-upload-modal" style="background:none;border:none;cursor:pointer;"><i data-lucide="x"></i></button>
+        </div>
+        <form id="upload-form">
+            <div class="form-group">
+                <label>Select File</label>
+                <input type="file" id="upload-file" required>
+            </div>
+            <div class="form-group">
+                <label>Folder (Optional)</label>
+                <select id="upload-folder">
+                    <option value="">-- Root --</option>
+                    <% if (rootFolders) { rootFolders.forEach(function(f) { %>
+                        <option value="<%= f.id %>"><%= f.name %></option>
+                    <% })} %>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Tags (comma separated)</label>
+                <input type="text" id="upload-tags" placeholder="e.g. invoice, report">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <input type="text" id="upload-desc">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <progress id="upload-progress" value="0" max="100" style="width: 100%; display: none;"></progress>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Upload</button>
+        </form>
+    </div>
+</div>
+<%- include('partials/footer') %>

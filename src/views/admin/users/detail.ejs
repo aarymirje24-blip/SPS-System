@@ -1,0 +1,29 @@
+<%- include('../../partials/header', { title, user, currentPath }) %>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>User Details: <%= targetUser.full_name %></h2>
+    <a href="/admin/users" class="btn" style="background: var(--border); color: var(--text-main);">Back to Users</a>
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+    <div class="card">
+        <h3>Information</h3>
+        <br>
+        <p><strong>Email:</strong> <%= targetUser.email %></p>
+        <p><strong>Role:</strong> <%= targetUser.role %></p>
+        <p><strong>Status:</strong> <%= targetUser.is_active ? 'Active' : 'Inactive' %></p>
+        <p><strong>Failed Logins:</strong> <%= targetUser.failed_login_attempts %></p>
+    </div>
+    <div class="card">
+        <h3>Actions</h3>
+        <br>
+        <button class="btn" style="margin-bottom: 1rem; width: 100%;" onclick="alert('Password reset link sent (Simulated)')">Send Password Reset Link</button>
+        <% if (user.role === 'super_admin' && targetUser.id !== user.id) { %>
+            <div style="border-top: 1px solid var(--border); margin: 1rem 0; padding-top: 1rem;">
+                <button class="btn <%= targetUser.is_active ? 'btn-danger' : '' %>" style="width: 100%;" onclick="alert('Status toggled (Simulated)')">
+                    <%= targetUser.is_active ? 'Deactivate User' : 'Activate User' %>
+                </button>
+            </div>
+        <% } %>
+    </div>
+</div>
+<%- include('../../partials/footer') %>

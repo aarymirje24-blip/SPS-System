@@ -1,0 +1,83 @@
+<%- include('../partials/header', { title, user, currentPath }) %>
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    <!-- Left: File details -->
+    <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+            <h2><%= file.original_name %></h2>
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="download-btn" data-file-id="<%= file.id %>" class="btn"><i data-lucide="download" style="width: 16px; height: 16px; vertical-align: middle;"></i> Download</button>
+                <% if (user.role === 'admin' || user.role === 'super_admin' || user.id === file.uploaded_by) { %>
+                    <button id="delete-file-btn" data-file-id="<%= file.id %>" class="btn btn-danger"><i data-lucide="trash-2" style="width: 16px; height: 16px; vertical-align: middle;"></i></button>
+                <% } %>
+            </div>
+        </div>
+        <div style="background: var(--bg-color); height: 300px; display: flex; align-items: center; justify-content: center; border-radius: 0.5rem; margin-bottom: 1rem;">
+            <i data-lucide="file" style="width: 64px; height: 64px; color: var(--text-muted);"></i>
+        </div>
+        <div style="font-size: 0.875rem; color: var(--text-muted);">
+            <p><strong>Size:</strong> <%= (file.size_bytes / 1024).toFixed(2) %> KB</p>
+            <p><strong>Type:</strong> <%= file.mime_type %></p>
+            <p><strong>Uploaded:</strong> <%= new Date(file.created_at).toLocaleString() %></p>
+            <% if (file.tags && file.tags.length > 0) { %>
+                <p style="margin-top: 0.5rem;">
+                    <% file.tags.forEach(function(tag) { %>
+                        <span class="badge" style="background: var(--border); color: var(--text-main); margin-right: 0.25rem;"><%= tag %></span>
+                    <% }); %>
+                </p>
+            <% } %>
+            <% if (file.description) { %>
+                <p style="margin-top: 0.5rem;"><%= file.description %></p>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Right: Sharing -->
+    <div class="card">
+        <h3>Share File</h3>
+        <br>
+        <form id="share-form" data-file-id="<%= file.id %>" style="margin-bottom: 2rem;">
+            <div class="form-group">
+                <label>Share Type</label>
+                <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+                    <label><input type="radio" name="share_type" value="user" checked> Specific User</label>
+                    <label><input type="radio" name="share_type" value="link"> Anyone with link</label>
+                </div>
+            </div>
+            <div class="form-group" id="user-search-section">
+                <label>Select User</label>
+                <select id="shared_with_user_id">
+                    <option value="">-- Choose User --</option>
+                    <% orgUsers.forEach(function(u) { if(u.id !== user.id) { %>
+                        <option value="<%= u.id %>"><%= u.full_name %> (<%= u.email %>)</option>
+                    <% }}); %>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Permission</label>
+                <select id="permission">
+                    <option value="view">View</option>
+                    <option value="edit">Edit</option>
+                </select>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">Share</button>
+        </form>
+
+        <h4>Active Shares</h4>
+        <div style="margin-top: 1rem;">
+            <% if (shares && shares.length > 0) { %>
+                <% shares.forEach(function(share) { %>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.375rem; margin-bottom: 0.5rem;">
+                        <div>
+                            <div style="font-weight: 500; font-size: 0.875rem;"><%= share.share_type === 'user' ? share.shared_with_name : 'Public Link' %></div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);"><span class="badge" style="background: #E0E7FF; color: #4338CA;"><%= share.permission %></span></div>
+                        </div>
+                        <button class="revoke-share-btn btn btn-danger" style="padding: 0.25rem 0.5rem;" data-file-id="<%= file.id %>" data-share-id="<%= share.id %>">Revoke</button>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p style="color: var(--text-muted); font-size: 0.875rem;">Not shared with anyone yet.</p>
+            <% } %>
+        </div>
+    </div>
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> — SecureShare</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/dashboard" class="brand">SecureShare</a>
+        </div>
+        <div class="nav-center">
+            <a href="/files" class="<%= typeof currentPath !== 'undefined' && currentPath.startsWith('/files') && currentPath !== '/files/shared-with-me' ? 'active' : '' %>">My Files</a>
+            <a href="/files/shared-with-me" class="<%= typeof currentPath !== 'undefined' && currentPath === '/files/shared-with-me' ? 'active' : '' %>">Shared With Me</a>
+            <% if (typeof user !== 'undefined' && (user.role === 'admin' || user.role === 'super_admin')) { %>
+                <a href="/admin" class="<%= typeof currentPath !== 'undefined' && currentPath.startsWith('/admin') ? 'active' : '' %>">Admin</a>
+            <% } %>
+        </div>
+        <div class="nav-right">
+            <form action="/files" method="GET">
+                <input type="text" name="q" placeholder="Search..." value="<%= typeof query !== 'undefined' ? query : '' %>">
+            </form>
+            <button id="notif-bell" style="background:none;border:none;cursor:pointer;"><i data-lucide="bell"></i></button>
+            <% if (typeof user !== 'undefined') { %>
+            <div class="avatar-dropdown">
+                <button id="avatar-btn"><%= user.full_name.charAt(0).toUpperCase() %></button>
+                <div class="dropdown-menu" id="avatar-menu">
+                    <a href="/profile">Profile</a>
+                    <button id="signout-btn">Sign Out</button>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    </nav>
+    <main class="main-content">

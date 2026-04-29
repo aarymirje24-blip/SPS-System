@@ -1,0 +1,53 @@
+<%- include('../partials/header', { title, user, currentPath }) %>
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Admin Dashboard</h2>
+</div>
+
+<div class="grid grid-cols-4" style="margin-bottom: 2rem;">
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= stats.user_count %></div>
+        <div style="color: var(--text-muted); font-size: 0.875rem;">Active Users</div>
+    </div>
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= stats.file_count %></div>
+        <div style="color: var(--text-muted); font-size: 0.875rem;">Total Files</div>
+    </div>
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= (Number(stats.used_bytes) / (1024 * 1024)).toFixed(2) %> MB</div>
+        <div style="color: var(--text-muted); font-size: 0.875rem;">Storage Used</div>
+    </div>
+    <div class="card" style="text-align: center;">
+        <div style="font-size: 2rem; font-weight: bold; color: var(--primary);"><%= stats.pending_invitations %></div>
+        <div style="color: var(--text-muted); font-size: 0.875rem;">Pending Invites</div>
+    </div>
+</div>
+
+<h3>Recent Activity</h3>
+<br>
+<div class="card" style="padding: 0;">
+    <table style="margin-top: 0;">
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Actor</th>
+                <th>Resource</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <% if (recentLogs && recentLogs.length > 0) { %>
+                <% recentLogs.forEach(function(log) { %>
+                    <tr>
+                        <td><span class="badge" style="background: #E0E7FF; color: #4338CA;"><%= log.action %></span></td>
+                        <td><%= log.actor_name %></td>
+                        <td><%= log.resource_type %> (<%= log.resource_id %>)</td>
+                        <td style="color: var(--text-muted); font-size: 0.875rem;"><%= new Date(log.created_at).toLocaleString() %></td>
+                    </tr>
+                <% }); %>
+            <% } else { %>
+                <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No activity recorded.</td></tr>
+            <% } %>
+        </tbody>
+    </table>
+</div>
+<%- include('../partials/footer') %>
