@@ -321,6 +321,10 @@ th {
   color: #1E40AF;
 }
 
+.badge-role-super { background-color: #1e3a5f; color: white; }
+.badge-role-admin { background-color: #2563eb; color: white; }
+.badge-role-user  { background-color: #6b7280; color: white; }
+
 /* === Admin Layout === */
 /* ── Sidebar ── */
 .sidebar {
