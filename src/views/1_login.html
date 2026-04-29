@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Secure File Sharing - Email Verification OTP</title>
+<title>Secure File Sharing - Login</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -262,6 +262,18 @@
     text-align: center;
     margin-bottom: 20px;
   }
+
+  .admin-badge {
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #1565c0;
+    text-align: center;
+    margin-top: 14px;
+  }
+  .admin-badge strong { display: block; font-size: 13px; margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -270,7 +282,7 @@
 
 <div class="container" id="app">
 
-  <!-- PAGE 1: LOGIN (Email + Password) -->
+  <!-- PAGE 1: LOGIN -->
   <div class="page active" id="page-login">
     <div class="card">
       <h2>Welcome Back</h2>
@@ -298,11 +310,12 @@
         <a onclick="goTo('page-register')">Create New Account</a>
       </div>
       
-    
+      
+      
     </div>
   </div>
 
-  <!-- PAGE 2: REGISTER (removed username and role, only full name + email + password) -->
+  <!-- PAGE 2: REGISTER -->
   <div class="page" id="page-register">
     <div class="card">
       <a class="back-link" onclick="goTo('page-login')">← Back to Login</a>
@@ -350,7 +363,7 @@
     </div>
   </div>
 
-  <!-- PAGE 3: REGISTRATION OTP VERIFICATION (Email verification after signup) -->
+  <!-- PAGE 3: REGISTRATION OTP VERIFICATION -->
   <div class="page" id="page-register-otp">
     <div class="card">
       <a class="back-link" onclick="cancelRegistration()">← Cancel & Back to Login</a>
@@ -362,7 +375,6 @@
       </div>
 
       <div class="alert error" id="reg-otp-alert"></div>
-      <div class="alert success" id="reg-otp-success" style="display:none;"></div>
 
       <div class="otp-group" id="reg-otp-inputs">
         <input type="text" maxlength="1" oninput="regOtpInput(this,0)" onkeydown="regOtpKey(event,0)">
@@ -381,7 +393,7 @@
     </div>
   </div>
 
-  <!-- PAGE 4: FORGOT PASSWORD (Email input) -->
+  <!-- PAGE 4: FORGOT PASSWORD -->
   <div class="page" id="page-forgot-password">
     <div class="card">
       <a class="back-link" onclick="goTo('page-login')">← Back to Login</a>
@@ -396,7 +408,7 @@
     </div>
   </div>
 
-  <!-- PAGE 5: PASSWORD RESET OTP VERIFICATION -->
+  <!-- PAGE 5: PASSWORD RESET OTP -->
   <div class="page" id="page-reset-otp">
     <div class="card">
       <a class="back-link" onclick="goTo('page-forgot-password')">← Change Email</a>
@@ -422,7 +434,7 @@
     </div>
   </div>
 
-  <!-- PAGE 6: RESET PASSWORD (Create new password) -->
+  <!-- PAGE 6: RESET PASSWORD -->
   <div class="page" id="page-reset-password">
     <div class="card">
       <a class="back-link" onclick="goTo('page-login')">← Back to Login</a>
@@ -456,7 +468,7 @@
     </div>
   </div>
 
-  <!-- PAGE 7: SUCCESS MESSAGE (password updated) -->
+  <!-- PAGE 7: PASSWORD RESET SUCCESS -->
   <div class="page" id="page-success">
     <div class="card" style="text-align:center;">
       <div class="success-icon">✅</div>
@@ -475,34 +487,24 @@
       <button class="btn-primary" onclick="goTo('page-login')">Go to Login</button>
     </div>
   </div>
-  
-  <!-- PAGE 9: LOGIN SUCCESS / DASHBOARD -->
-  <div class="page" id="page-dashboard">
-    <div class="card" style="text-align:center; max-width: 450px;">
-      <div class="success-icon">📁</div>
-      <h2>Secure Access Granted</h2>
-      <p class="subtitle" style="margin-bottom:20px;">You have successfully logged into the Secure File Sharing System.</p>
-      <div style="background:#f0f4f8; padding:15px; border-radius:10px; margin-bottom:20px;">
-        <p style="font-size:14px; color:#1565c0; font-weight:500;">✅ Authenticated via Email & Password</p>
-        <p style="font-size:12px; color:#555; margin-top:8px;">Your identity is verified. You can now access shared files.</p>
-      </div>
-      <button class="btn-primary" onclick="logout()">Logout</button>
-    </div>
-  </div>
 
 </div>
 
 <script>
+  // ---------- ADMIN CREDENTIALS (hardcoded) ----------
+  const ADMIN_EMAIL    = 'admin@fileshare.com';
+  const ADMIN_PASSWORD = 'Admin@1234';
+  const ADMIN_NAME     = 'Administrator';
+
   // ---------- GLOBAL STATE ----------
-  let pendingRegistration = null;  // Stores { fullName, email, password }
+  let pendingRegistration = null;
   let regOTP = '';
   let regTimerInterval = null;
-  
   let resetOTP = '';
   let resetEmail = '';
   let resetTimerInterval = null;
   
-  // Simulated user database (with emailVerified flag)
+  // Simulated user database
   let usersDB = [
     { email: "demo@example.com", fullName: "Demo User", password: "Demo@1234", emailVerified: true }
   ];
@@ -552,13 +554,68 @@
     alert(`📧 Demo: ${purpose} OTP sent to ${email}\n🔐 Your verification code: ${otpCode}\n(Check console for details.)`);
   }
   
+  // ---------- LOGIN ----------
+  function loginWithPassword() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const alertEl  = document.getElementById('login-alert');
+    
+    if (!email || !email.includes('@')) {
+      alertEl.textContent = '❌ Please enter a valid email address.';
+      alertEl.classList.add('show');
+      return;
+    }
+    if (!password) {
+      alertEl.textContent = '❌ Please enter your password.';
+      alertEl.classList.add('show');
+      return;
+    }
+
+    // ── Admin check ──
+    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      if (password !== ADMIN_PASSWORD) {
+        alertEl.textContent = '❌ Incorrect admin password.';
+        alertEl.classList.add('show');
+        return;
+      }
+      // Save session and redirect to Admin Dashboard
+      sessionStorage.setItem('loggedInUser', JSON.stringify({ name: ADMIN_NAME, email: ADMIN_EMAIL, role: 'admin' }));
+      alertEl.classList.remove('show');
+      window.location.href = '/admin-dashboard';
+      return;
+    }
+
+    // ── Regular user check ──
+    const user = findUserByEmail(email);
+    if (!user) {
+      alertEl.textContent = '⚠️ No account found with this email. Please register first.';
+      alertEl.classList.add('show');
+      return;
+    }
+    if (!user.emailVerified) {
+      alertEl.textContent = '⚠️ Email not verified! Please verify your email before logging in.';
+      alertEl.classList.add('show');
+      return;
+    }
+    if (user.password !== password) {
+      alertEl.textContent = '❌ Incorrect password. Please try again.';
+      alertEl.classList.add('show');
+      return;
+    }
+
+    // Save session and redirect to User Dashboard
+    sessionStorage.setItem('loggedInUser', JSON.stringify({ name: user.fullName, email: user.email, role: 'user' }));
+    alertEl.classList.remove('show');
+    window.location.href = '/user-dashboard';
+  }
+
   // ---------- REGISTRATION WITH OTP ----------
   function initiateRegistration() {
-    const fullname = document.getElementById('reg-fullname').value.trim();
-    const email = document.getElementById('reg-email').value.trim();
-    const password = document.getElementById('reg-password').value;
+    const fullname    = document.getElementById('reg-fullname').value.trim();
+    const email       = document.getElementById('reg-email').value.trim();
+    const password    = document.getElementById('reg-password').value;
     const confirmPass = document.getElementById('reg-confirm-password').value;
-    const alertEl = document.getElementById('register-alert');
+    const alertEl     = document.getElementById('register-alert');
     
     if (!fullname) {
       alertEl.textContent = '⚠️ Please enter your full name.';
@@ -567,6 +624,12 @@
     }
     if (!email || !email.includes('@')) {
       alertEl.textContent = '⚠️ Please enter a valid email address.';
+      alertEl.classList.add('show');
+      return;
+    }
+    // Prevent registering with admin email
+    if (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      alertEl.textContent = '❌ This email is reserved. Please use a different email.';
       alertEl.classList.add('show');
       return;
     }
@@ -597,18 +660,13 @@
       return;
     }
     
-    // Store pending registration
     pendingRegistration = { fullname, email, password };
-    
-    // Generate and send OTP
     regOTP = generateOTP();
     sendOTPToEmail(email, regOTP, 'email verification');
     
-    // Show OTP verification page
     document.getElementById('reg-otp-email-display').textContent = email;
     document.querySelectorAll('#reg-otp-inputs input').forEach(i => { i.value = ''; i.classList.remove('filled'); });
     document.getElementById('reg-otp-alert').classList.remove('show');
-    
     goTo('page-register-otp');
     startRegTimer();
   }
@@ -630,10 +688,7 @@
   }
   
   function resendRegOTP() {
-    if (!pendingRegistration) {
-      goTo('page-register');
-      return;
-    }
+    if (!pendingRegistration) { goTo('page-register'); return; }
     regOTP = generateOTP();
     sendOTPToEmail(pendingRegistration.email, regOTP, 'email verification');
     document.querySelectorAll('#reg-otp-inputs input').forEach(i => { i.value = ''; i.classList.remove('filled'); });
@@ -658,7 +713,7 @@
   }
   
   function verifyRegistrationOTP() {
-    const inputs = document.querySelectorAll('#reg-otp-inputs input');
+    const inputs  = document.querySelectorAll('#reg-otp-inputs input');
     const entered = Array.from(inputs).map(i => i.value).join('');
     const alertEl = document.getElementById('reg-otp-alert');
     
@@ -671,11 +726,8 @@
     if (entered === regOTP && pendingRegistration) {
       alertEl.classList.remove('show');
       clearInterval(regTimerInterval);
-      
-      // Create verified user
       addUser(pendingRegistration.fullname, pendingRegistration.email, pendingRegistration.password);
-      verifyUserEmail(pendingRegistration.email); // Mark as verified
-      
+      verifyUserEmail(pendingRegistration.email);
       pendingRegistration = null;
       goTo('page-reg-success');
     } else {
@@ -691,50 +743,10 @@
     pendingRegistration = null;
     goTo('page-login');
   }
-  
-  // ---------- LOGIN (checks email verified) ----------
-  function loginWithPassword() {
-    const email = document.getElementById('login-email').value.trim();
-    const password = document.getElementById('login-password').value;
-    const alertEl = document.getElementById('login-alert');
-    
-    if (!email || !email.includes('@')) {
-      alertEl.textContent = '❌ Please enter a valid email address.';
-      alertEl.classList.add('show');
-      return;
-    }
-    if (!password) {
-      alertEl.textContent = '❌ Please enter your password.';
-      alertEl.classList.add('show');
-      return;
-    }
-    
-    const user = findUserByEmail(email);
-    if (!user) {
-      alertEl.textContent = '⚠️ No account found with this email. Please register first.';
-      alertEl.classList.add('show');
-      return;
-    }
-    
-    if (!user.emailVerified) {
-      alertEl.textContent = '⚠️ Email not verified! Please check your inbox and verify your email before logging in.';
-      alertEl.classList.add('show');
-      return;
-    }
-    
-    if (user.password !== password) {
-      alertEl.textContent = '❌ Incorrect password. Please try again.';
-      alertEl.classList.add('show');
-      return;
-    }
-    
-    alertEl.classList.remove('show');
-    goTo('page-dashboard');
-  }
-  
-  // ---------- PASSWORD RESET FLOW (with OTP) ----------
+
+  // ---------- PASSWORD RESET FLOW ----------
   function sendPasswordResetOTP() {
-    const email = document.getElementById('forgot-email').value.trim();
+    const email   = document.getElementById('forgot-email').value.trim();
     const alertEl = document.getElementById('forgot-alert');
     if (!email || !email.includes('@')) {
       alertEl.textContent = '❌ Valid email required.';
@@ -749,7 +761,7 @@
     }
     alertEl.classList.remove('show');
     resetEmail = email;
-    resetOTP = generateOTP();
+    resetOTP   = generateOTP();
     sendOTPToEmail(resetEmail, resetOTP, 'password reset');
     document.getElementById('reset-otp-email-display').textContent = resetEmail;
     document.querySelectorAll('#reset-otp-inputs input').forEach(i => { i.value = ''; i.classList.remove('filled'); });
@@ -775,10 +787,7 @@
   }
   
   function resendResetOTP() {
-    if (!resetEmail) {
-      goTo('page-forgot-password');
-      return;
-    }
+    if (!resetEmail) { goTo('page-forgot-password'); return; }
     resetOTP = generateOTP();
     sendOTPToEmail(resetEmail, resetOTP, 'password reset');
     document.querySelectorAll('#reset-otp-inputs input').forEach(i => { i.value = ''; i.classList.remove('filled'); });
@@ -803,7 +812,7 @@
   }
   
   function verifyResetOTP() {
-    const inputs = document.querySelectorAll('#reset-otp-inputs input');
+    const inputs  = document.querySelectorAll('#reset-otp-inputs input');
     const entered = Array.from(inputs).map(i => i.value).join('');
     const alertEl = document.getElementById('reset-otp-alert');
     if (entered.length < 6) {
@@ -824,8 +833,8 @@
   }
   
   function checkStrength(val) {
-    const bars = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
-    const label = document.getElementById('strength-label');
+    const bars   = ['s1','s2','s3','s4'].map(id => document.getElementById(id));
+    const label  = document.getElementById('strength-label');
     const colors = ['#e53935','#fb8c00','#fdd835','#43a047'];
     const labels = ['Weak','Fair','Good','Strong'];
     let score = 0;
@@ -835,14 +844,14 @@
     if (/[^A-Za-z0-9]/.test(val)) score++;
     bars.forEach((b, i) => { if(b) b.style.background = i < score ? colors[score - 1] : '#e0e0e0'; });
     if (label) {
-      label.textContent = val.length ? (labels[score - 1] || '') : '';
-      label.style.color = score > 0 ? colors[score - 1] : '#aaa';
+      label.textContent  = val.length ? (labels[score - 1] || '') : '';
+      label.style.color  = score > 0 ? colors[score - 1] : '#aaa';
     }
   }
   
   function checkRegisterStrength(val) {
-    const bars = ['reg-s1','reg-s2','reg-s3','reg-s4'].map(id => document.getElementById(id));
-    const label = document.getElementById('reg-strength-label');
+    const bars   = ['reg-s1','reg-s2','reg-s3','reg-s4'].map(id => document.getElementById(id));
+    const label  = document.getElementById('reg-strength-label');
     const colors = ['#e53935','#fb8c00','#fdd835','#43a047'];
     const labels = ['Weak','Fair','Good','Strong'];
     let score = 0;
@@ -858,8 +867,8 @@
   }
   
   function updateResetPassword() {
-    const np = document.getElementById('new-password').value;
-    const cp = document.getElementById('confirm-password').value;
+    const np      = document.getElementById('new-password').value;
+    const cp      = document.getElementById('confirm-password').value;
     const alertEl = document.getElementById('reset-alert');
     if (np.length < 8) {
       alertEl.textContent = '⚠️ Password must be at least 8 characters.';
@@ -890,31 +899,24 @@
       alertEl.classList.add('show');
     }
   }
-  
-  function logout() {
-    goTo('page-login');
-    document.getElementById('login-email').value = '';
-    document.getElementById('login-password').value = '';
-  }
-  
-  // Expose functions globally
-  window.togglePassword = togglePassword;
-  window.goTo = goTo;
-  window.loginWithPassword = loginWithPassword;
-  window.initiateRegistration = initiateRegistration;
+
+  // Expose globally
+  window.togglePassword        = togglePassword;
+  window.goTo                  = goTo;
+  window.loginWithPassword     = loginWithPassword;
+  window.initiateRegistration  = initiateRegistration;
   window.verifyRegistrationOTP = verifyRegistrationOTP;
-  window.resendRegOTP = resendRegOTP;
-  window.regOtpInput = regOtpInput;
-  window.regOtpKey = regOtpKey;
-  window.cancelRegistration = cancelRegistration;
-  window.sendPasswordResetOTP = sendPasswordResetOTP;
-  window.verifyResetOTP = verifyResetOTP;
-  window.resendResetOTP = resendResetOTP;
-  window.resetOtpInput = resetOtpInput;
-  window.resetOtpKey = resetOtpKey;
-  window.updateResetPassword = updateResetPassword;
-  window.logout = logout;
-  window.checkStrength = checkStrength;
+  window.resendRegOTP          = resendRegOTP;
+  window.regOtpInput           = regOtpInput;
+  window.regOtpKey             = regOtpKey;
+  window.cancelRegistration    = cancelRegistration;
+  window.sendPasswordResetOTP  = sendPasswordResetOTP;
+  window.verifyResetOTP        = verifyResetOTP;
+  window.resendResetOTP        = resendResetOTP;
+  window.resetOtpInput         = resetOtpInput;
+  window.resetOtpKey           = resetOtpKey;
+  window.updateResetPassword   = updateResetPassword;
+  window.checkStrength         = checkStrength;
   window.checkRegisterStrength = checkRegisterStrength;
 </script>
 </body>

@@ -33,10 +33,46 @@
   .user-chip {
     display: flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,0.15);
-    padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer;
+    padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
   }
+  .logout-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.9);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .logout-btn:hover { background: rgba(255,255,255,0.22); color: white; }
 
   .content { padding: 28px 24px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Welcome banner ── */
+  .welcome-banner {
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+    border-radius: 16px;
+    padding: 22px 28px;
+    color: white;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(21,101,192,0.25);
+  }
+  .welcome-avatar {
+    width: 52px; height: 52px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .welcome-text h3 { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .welcome-text p  { font-size: 13px; opacity: 0.85; }
 
   /* ── Stat Cards ── */
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 28px; }
@@ -122,14 +158,27 @@
       <i class="fas fa-bell"></i>
       <span class="notif-badge">2</span>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-right:6px;color:#fff;font-size:13px;">
-      <span style="background:rgba(255,255,255,0.12);padding:6px 10px;border-radius:10px;font-weight:600;">Acme Corp</span>
+    <div class="user-chip">
+      <i class="fas fa-user"></i>
+      <span id="user-name-display">User</span>
     </div>
-    <div class="user-chip"><i class="fas fa-user"></i> John Smith</div>
+    <button class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
   </div>
 </div>
 
 <div class="content">
+
+  <!-- Welcome Banner -->
+  <div class="welcome-banner">
+    <div class="welcome-avatar">👤</div>
+    <div class="welcome-text">
+      <h3>Welcome back, <span id="welcome-name">User</span>!</h3>
+      <p>Here's a summary of your file activity today.</p>
+    </div>
+  </div>
+
   <!-- Stats -->
   <div class="stats">
     <div class="stat-card">
@@ -220,6 +269,37 @@
       </div>
     </div>
   </div>
+
 </div>
+
+<script>
+  // ── Session guard: only regular users can view this page ──
+  (function() {
+    const session = sessionStorage.getItem('loggedInUser');
+    if (!session) {
+      window.location.href = '1_login.html';
+      return;
+    }
+    const user = JSON.parse(session);
+    if (user.role === 'admin') {
+      // Admin tried to access user page — redirect to admin dashboard
+      window.location.href = '2_admin_dashboard.html';
+      return;
+    }
+    // Display logged-in user's name
+    const displayName = user.name || 'User';
+    const nameEl    = document.getElementById('user-name-display');
+    const welcomeEl = document.getElementById('welcome-name');
+    if (nameEl)    nameEl.textContent    = displayName;
+    if (welcomeEl) welcomeEl.textContent = displayName.split(' ')[0]; // first name only
+  })();
+
+  function logout() {
+    sessionStorage.removeItem('loggedInUser');
+    window.location.href = '1_login.html';
+  }
+
+  window.logout = logout;
+</script>
 </body>
 </html>

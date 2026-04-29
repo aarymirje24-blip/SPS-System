@@ -59,6 +59,27 @@
     color: white;
     border-left-color: white;
   }
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.85);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .logout-btn:hover { background: rgba(255,255,255,0.2); color: white; }
 
   /* ── Main ── */
   .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
@@ -86,10 +107,8 @@
     display: flex; align-items: center; gap: 8px;
     background: rgba(255,255,255,0.15);
     padding: 6px 14px; border-radius: 20px;
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: background 0.2s;
+    font-size: 13px; font-weight: 500;
   }
-  .user-chip:hover { background: rgba(255,255,255,0.25); }
 
   .content { padding: 28px 24px; flex: 1; overflow-y: auto; }
 
@@ -155,9 +174,9 @@
     display: inline-block; padding: 3px 10px; border-radius: 20px;
     font-size: 11px; font-weight: 600;
   }
-  .badge-admin  { background: #e3f2fd; color: #1565c0; }
-  .badge-user   { background: #e8f5e9; color: #2e7d32; }
-  .badge-active { background: #e8f5e9; color: #2e7d32; }
+  .badge-admin    { background: #e3f2fd; color: #1565c0; }
+  .badge-user     { background: #e8f5e9; color: #2e7d32; }
+  .badge-active   { background: #e8f5e9; color: #2e7d32; }
   .badge-inactive { background: #fce4ec; color: #c62828; }
 
   .btn { border: none; border-radius: 8px; padding: 6px 14px; font-size: 12px; font-family: 'Poppins', sans-serif; cursor: pointer; font-weight: 500; transition: opacity 0.2s; }
@@ -200,6 +219,11 @@
     <a href="/activity-logs"><i class="fas fa-clipboard-list"></i> Activity Logs</a>
     <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
   </nav>
+  <div class="sidebar-footer">
+    <button class="logout-btn" onclick="logout()">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
+  </div>
 </div>
 
 <div class="main">
@@ -210,14 +234,10 @@
         <i class="fas fa-bell"></i>
         <span class="notif-badge">3</span>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-right:6px;">
-        <select id="org-select" style="border-radius:8px;padding:6px 10px;border:1px solid rgba(226,232,240,1);font-size:13px;">
-          <option>Acme Corp</option>
-          <option>Contoso</option>
-          <option>Globex</option>
-        </select>
+      <div class="user-chip">
+        <i class="fas fa-user-shield"></i>
+        <span id="admin-name-display">Administrator</span>
       </div>
-      <div class="user-chip"><i class="fas fa-user-shield"></i> Administrator</div>
     </div>
   </div>
 
@@ -314,5 +334,31 @@
   </div>
 </div>
 
+<script>
+  // ── Session guard: only admin can view this page ──
+  (function() {
+    const session = sessionStorage.getItem('loggedInUser');
+    if (!session) {
+      window.location.href = '1_login.html';
+      return;
+    }
+    const user = JSON.parse(session);
+    if (user.role !== 'admin') {
+      // Non-admin tried to access admin page — redirect them to user dashboard
+      window.location.href = '3_user_dashboard.html';
+      return;
+    }
+    // Show admin name in topbar
+    const nameEl = document.getElementById('admin-name-display');
+    if (nameEl) nameEl.textContent = user.name || 'Administrator';
+  })();
+
+  function logout() {
+    sessionStorage.removeItem('loggedInUser');
+    window.location.href = '1_login.html';
+  }
+
+  window.logout = logout;
+</script>
 </body>
 </html>
