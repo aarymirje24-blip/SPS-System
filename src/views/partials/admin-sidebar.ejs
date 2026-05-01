@@ -12,31 +12,34 @@
 <body class="admin-body">
 <div class="admin-wrapper">
     <div class="sidebar">
-        <div class="sidebar-brand">SecureShare</div>
-        <nav class="sidebar-nav">
-            <a href="/admin" class="sidebar-link <%= currentPath === '/admin' ? 'active' : '' %>">
+        <div class="sidebar-logo">
+            <div class="logo-icon"><i class="fas fa-shield-alt"></i></div>
+            SecureShare
+        </div>
+        <nav>
+            <a href="/admin" class="<%= currentPath === '/admin' ? 'active' : '' %>">
                 <i class="fas fa-home"></i> Dashboard
             </a>
-            <a href="/admin/users" class="sidebar-link <%= currentPath.startsWith('/admin/users') ? 'active' : '' %>">
+            <a href="/admin/users" class="<%= currentPath.startsWith('/admin/users') ? 'active' : '' %>">
                 <i class="fas fa-users"></i> Manage Users
             </a>
-            <a href="/admin/files" class="sidebar-link <%= currentPath.startsWith('/admin/files') ? 'active' : '' %>">
+            <a href="/admin/files" class="<%= currentPath.startsWith('/admin/files') ? 'active' : '' %>">
                 <i class="fas fa-folder"></i> All Files
             </a>
-            <a href="/admin/audit-log" class="sidebar-link <%= currentPath.startsWith('/admin/audit-log') ? 'active' : '' %>">
+            <a href="/admin/audit-log" class="<%= currentPath.startsWith('/admin/audit-log') ? 'active' : '' %>">
                 <i class="fas fa-clipboard-list"></i> Activity Logs
             </a>
             <% if (user.role === 'super_admin') { %>
-            <a href="/admin/org-settings" class="sidebar-link <%= currentPath.startsWith('/admin/org-settings') ? 'active' : '' %>">
+            <a href="/admin/org-settings" class="<%= currentPath.startsWith('/admin/org-settings') ? 'active' : '' %>">
                 <i class="fas fa-cog"></i> Settings
             </a>
             <% } %>
-            <a href="/dashboard" class="sidebar-link">
+            <a href="/dashboard">
                 <i class="fas fa-arrow-left"></i> Back to Files
             </a>
         </nav>
         <div class="sidebar-footer">
-            <button id="signout-btn" class="btn-signout">
+            <button id="signout-btn" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Logout
             </button>
         </div>
@@ -44,6 +47,10 @@
     <div class="main">
         <div class="topbar">
             <h1 class="topbar-title"><%= title %></h1>
-            <div class="topbar-user"><%= user.full_name %></div>
+            <div class="topbar-right">
+                <div class="user-chip">
+                    <i class="fas fa-user-circle"></i> <%= user.full_name %>
+                </div>
+            </div>
         </div>
         <div class="content">
