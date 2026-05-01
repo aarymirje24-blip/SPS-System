@@ -24,12 +24,12 @@ async function findAllByOrg(org_id, { page = 1, limit = 20, role, is_active, sea
     let query = `
         SELECT id, org_id, email, full_name, role, avatar_url, is_active, last_login_at, created_at
         FROM users
-        WHERE org_id = $1 AND is_deleted IS DISTINCT FROM true
+        WHERE org_id = $1
     `;
     let countQuery = `
         SELECT COUNT(*) as count
         FROM users
-        WHERE org_id = $1 AND is_deleted IS DISTINCT FROM true
+        WHERE org_id = $1
     `;
     let paramIndex = 2;
 
