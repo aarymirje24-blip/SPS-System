@@ -7,7 +7,7 @@
             <div style="display: flex; gap: 0.5rem;">
                 <button id="download-btn" data-file-id="<%= file.id %>" class="btn"><i data-lucide="download" style="width: 16px; height: 16px; vertical-align: middle;"></i> Download</button>
                 <% if (user.role === 'admin' || user.role === 'super_admin' || user.id === file.uploaded_by) { %>
-                    <button id="delete-file-btn" data-file-id="<%= file.id %>" class="btn btn-danger"><i data-lucide="trash-2" style="width: 16px; height: 16px; vertical-align: middle;"></i></button>
+                    <button id="delete-file-btn" data-file-id="<%= file.id %>" class="btn btn-danger"><i data-lucide="trash-2" style="width: 16px; height: 16px; vertical-align: middle;"></i> Delete</button>
                 <% } %>
             </div>
         </div>
