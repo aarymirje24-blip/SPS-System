@@ -1,65 +1,104 @@
-# Express HTML Server
+# SecureShare (SPS-System)
 
-This project is a simple Node.js and Express server that serves HTML files based on defined API routes. It is structured to separate concerns, making it easy to manage and extend.
-
-## Project Structure
-
-```
-express-html-server
-├── src
-│   ├── app.js               # Initializes the Express application and middleware
-│   ├── server.js            # Entry point for starting the server
-│   ├── routes               # Contains route definitions
-│   │   ├── index.js         # Main application routes
-│   │   └── api.js           # API routes for future endpoints
-│   ├── controllers          # Contains controller logic
-│   │   └── pageController.js # Handles rendering of HTML pages
-│   ├── views                # HTML files for rendering
-│   │   ├── home.html        # Home page HTML
-│   │   ├── about.html       # About page HTML
-│   │   └── 404.html         # 404 error page HTML
-│   └── public               # Static files
-│       ├── css              # CSS styles
-│       │   └── styles.css    # Styles for the application
-│       └── js               # Client-side JavaScript
-│           └── main.js      # JavaScript for client-side functionality
-├── package.json             # npm configuration file
-├── .gitignore               # Files and directories to ignore by Git
-└── README.md                # Project documentation
-```
-
-## Getting Started
-
-1. **Clone the repository:**
-   ```
-   git clone <repository-url>
-   cd express-html-server
-   ```
-
-2. **Install dependencies:**
-   ```
-   npm install
-   ```
-
-3. **Run the server:**
-   ```
-   npm start
-   ```
-
-4. **Access the application:**
-   Open your browser and navigate to `http://localhost:3000` to view the home page.
+SecureShare is a secure, cloud-based enterprise file management and sharing system built with Node.js and Express. It is designed to handle organizational file storage securely, offering features like role-based access control, file tracking, secure sharing, and detailed audit logging.
 
 ## Features
 
-- Renders HTML pages for home and about sections.
-- Handles 404 errors with a dedicated HTML page.
-- Modular structure for easy maintenance and scalability.
+- **🏢 Organization Management**: Create and manage isolated organization workspaces.
+- **🔐 Role-Based Access Control (RBAC)**: Distinct permissions for `super_admin`, `admin`, and `user` roles.
+- **📂 Secure File Storage**: Direct and secure file uploads stored via **Cloudinary**.
+- **🔗 File Sharing**: Generate expiring, secure shareable links to share files internally or externally.
+- **✉️ Email Notifications**: Automated email invites and password reset functionality using SMTP (Nodemailer).
+- **📋 Audit Logging**: Comprehensive tracking of all file, user, and organization activities.
+- **🎨 Modern UI**: Server-side rendered views using EJS with a clean, responsive CSS design.
 
-## Future Enhancements
+## Tech Stack
 
-- Implement additional API endpoints in `src/routes/api.js`.
-- Add more pages and corresponding controllers as needed.
+- **Backend**: Node.js, Express.js
+- **Database**: PostgreSQL (Serverless via Neon DB)
+- **Templating Engine**: EJS (Embedded JavaScript)
+- **Storage**: Cloudinary
+- **Email Service**: Nodemailer (SMTP)
+- **Security**: Bcrypt, JWT (JSON Web Tokens), Helmet, Express Rate Limit, Csurf
+
+---
+
+## Getting Started
+
+### Prerequisites
+Make sure you have the following installed and set up:
+- Node.js (v16+)
+- A Cloudinary Account
+- A PostgreSQL Database (e.g., Neon DB)
+- An SMTP server (e.g., SendGrid, Gmail, Mailtrap) for email delivery
+
+### Installation
+
+1. **Clone the repository and navigate into it:**
+   ```bash
+   git clone <repository-url>
+   cd SPS-System
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Setup:**
+   Copy the example environment file and fill in your credentials.
+   ```bash
+   cp .env.example .env
+   ```
+   **Required `.env` Variables:**
+   - `DATABASE_URL`: Your PostgreSQL connection string.
+   - `JWT_SECRET` & `JWT_REFRESH_SECRET`: Secure random strings for tokens.
+   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: From your Cloudinary dashboard.
+   - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`: Your email provider details.
+   - `COOKIE_SECRET`: Secure string for signing cookies.
+
+4. **Initialize the Database:**
+   Run the migration script to create the necessary tables, enums, and triggers.
+   ```bash
+   node migrations/runMigration.js
+   ```
+
+5. **Run the Application:**
+   ```bash
+   # Development mode with hot-reloading
+   npm run dev
+
+   # Production mode
+   npm start
+   ```
+
+   The server will start on `http://localhost:3001` (or your configured `PORT`).
+
+---
+
+## Folder Structure
+
+```text
+SPS-System/
+├── migrations/       # Database migration scripts
+├── src/
+│   ├── config/       # App config (DB, Cloudinary, Env)
+│   ├── controllers/  # Route logic and handlers
+│   ├── middleware/   # Express middlewares (Auth, Rate Limiting)
+│   ├── models/       # Database models
+│   ├── public/       # Static files (CSS, JS, Images)
+│   ├── routes/       # API and View routes
+│   ├── services/     # External integrations (Cloudinary, Nodemailer)
+│   ├── utils/        # Helper functions (JWT)
+│   ├── views/        # EJS templates
+│   ├── app.js        # Express app configuration
+│   └── server.js     # Entry point
+├── .env.example      # Example environment variables
+└── package.json      # Dependencies and scripts
+```
+
+## Contributing
+If you'd like to contribute, please fork the repository and use a feature branch. Pull requests are warmly welcome.
 
 ## License
-
-This project is licensed under the MIT License.
+ISC
