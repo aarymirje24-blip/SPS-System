@@ -9,10 +9,29 @@ DROP TABLE IF EXISTS users CASCADE;
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ENUM types
-CREATE TYPE user_role AS ENUM ('super_admin', 'admin', 'user');
-CREATE TYPE share_type AS ENUM ('user', 'org_wide');
-CREATE TYPE share_permission AS ENUM ('view', 'download', 'edit');
-CREATE TYPE invitation_status AS ENUM ('pending', 'accepted', 'expired');
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('super_admin', 'admin', 'user');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE share_type AS ENUM ('user', 'org_wide');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE share_permission AS ENUM ('view', 'download', 'edit');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE invitation_status AS ENUM ('pending', 'accepted', 'expired');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- organisations table
 CREATE TABLE IF NOT EXISTS organisations (
@@ -143,7 +162,14 @@ END;
 $$ language 'plpgsql';
 
 -- Apply trigger to tables that have updated_at
+DROP TRIGGER IF EXISTS update_organisations_updated_at ON organisations;
 CREATE TRIGGER update_organisations_updated_at BEFORE UPDATE ON organisations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_users_updated_at ON users;
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_folders_updated_at ON folders;
 CREATE TRIGGER update_folders_updated_at BEFORE UPDATE ON folders FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_files_updated_at ON files;
 CREATE TRIGGER update_files_updated_at BEFORE UPDATE ON files FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
