@@ -104,29 +104,36 @@ async function inviteUser(req, res, next) {
             RETURNING id, email, role, expires_at
         `, [req.user.org_id, req.user.id, email, role, token, expires_at]);
         
-        await auditModel.log({
-            org_id: req.user.org_id,
-            actor_id: req.user.id,
-            action: 'USER_INVITED',
-            meta: { email, role }
-        });
-        
         const invite_url = env.APP_BASE_URL + '/accept-invite/' + token;
         
         const inviter = await userModel.findById(req.user.id);
         const orgResult = await pool.query('SELECT name FROM organisations WHERE id = $1', [req.user.org_id]);
         const orgName = orgResult.rows[0]?.name || 'your organisation';
 
-        sendInvitationEmail({
-            to: email,
-            inviterName: inviter.full_name,
-            orgName,
-            inviteUrl: invite_url,
-            role
-        }).catch(err => console.error('Invite email failed:', err.message));
+        let emailSent = true;
+        try {
+            await sendInvitationEmail({
+                to: email,
+                inviterName: inviter.full_name,
+                orgName,
+                inviteUrl: invite_url,
+                role
+            });
+        } catch (err) {
+            console.error('Invite email failed:', err);
+            emailSent = false;
+        }
 
+        await auditModel.log({
+            org_id: req.user.org_id,
+            actor_id: req.user.id,
+            action: 'USER_INVITED',
+            meta: { email, role, email_sent: emailSent }
+        });
+        
         return res.status(201).json({
             success: true,
+            email_sent: emailSent,
             invitation: inviteResult.rows[0],
             invite_url
         });

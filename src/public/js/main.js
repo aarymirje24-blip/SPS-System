@@ -234,14 +234,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // SECTION 8 — File detail page actions
     const downloadBtn = document.getElementById('download-btn');
     if (downloadBtn) {
-        downloadBtn.addEventListener('click', async () => {
+        downloadBtn.addEventListener('click', (event) => {
+            event.preventDefault();
             const fileId = downloadBtn.getAttribute('data-file-id');
-            try {
-                const data = await apiFetch(`/api/v1/files/${fileId}/download`);
-                if (data && data.url) {
-                    window.open(data.url, '_blank');
-                }
-            } catch (err) {}
+            if (fileId) {
+                window.location.href = `/api/v1/files/${fileId}/download`;
+            } else {
+                showToast('Unable to download file: missing file id', 'error');
+            }
         });
     }
 
@@ -259,6 +259,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // File list inline delete
+    document.querySelectorAll('.download-file-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const fileId = btn.getAttribute('data-file-id');
+            if (fileId) {
+                window.location.href = `/api/v1/files/${fileId}/download`;
+            } else {
+                showToast('Unable to download file: missing file id', 'error');
+            }
+        });
+    });
+
     document.querySelectorAll('.delete-file-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
@@ -345,12 +358,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const role = document.getElementById('invite-role').value;
             
             try {
-                await apiFetch('/api/v1/users/invite', {
+                const res = await apiFetch('/api/v1/users/invite', {
                     method: 'POST',
                     body: { email, role }
                 });
-                showToast(`Invitation sent to ${email}`, 'success');
-                inviteModal.classList.remove('show');
+                
+                if (res && res.success) {
+                    if (res.email_sent === false) {
+                        showToast('Invitation created (SMTP failed)', 'warning');
+                        window.prompt(
+                            'Invitation created, but failed to send the email (check SMTP configuration).\n\nCopy the invitation link below to share it manually:',
+                            res.invite_url
+                        );
+                    } else {
+                        showToast(`Invitation sent to ${email}`, 'success');
+                    }
+                    inviteModal.classList.remove('show');
+                    setTimeout(() => window.location.reload(), 1500);
+                }
             } catch (err) {}
         });
     }
@@ -512,19 +537,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.toggleFolderMenu = function(btn) {
-        const dd = btn.nextElementSibling;
-        document.querySelectorAll('.folder-dropdown').forEach(d => { if (d !== dd) d.style.display = 'none'; });
-        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
-    };
-    document.addEventListener('click', () => document.querySelectorAll('.folder-dropdown').forEach(d => d.style.display = 'none'));
-
-    document.querySelectorAll('.rename-folder-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
+    // Folder actions event delegation (CSP compliant)
+    document.addEventListener('click', async (e) => {
+        // 1. Three-dots folder menu toggle
+        const menuBtn = e.target.closest('.folder-menu-btn');
+        if (menuBtn) {
             e.preventDefault();
             e.stopPropagation();
-            const folderId = btn.dataset.folderId;
-            const currentName = btn.dataset.folderName;
+            const dd = menuBtn.nextElementSibling;
+            document.querySelectorAll('.folder-dropdown').forEach(d => { if (d !== dd) d.style.display = 'none'; });
+            if (dd) {
+                dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+            }
+            return;
+        }
+
+        // Hide all folder dropdowns when clicking elsewhere
+        if (!e.target.closest('.folder-dropdown')) {
+            document.querySelectorAll('.folder-dropdown').forEach(d => d.style.display = 'none');
+        }
+
+        // 2. Folder deletion (direct button & dropdown button)
+        const deleteBtn = e.target.closest('.delete-folder-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!confirm('Delete this folder and all its contents? This cannot be undone.')) return;
+            const folderId = deleteBtn.dataset.folderId;
+            
+            try {
+                await apiFetch(`/api/v1/folders/${folderId}`, {
+                    method: 'DELETE'
+                });
+                showToast('Folder deleted', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } catch (err) {}
+            return;
+        }
+
+        // 3. Folder renaming
+        const renameBtn = e.target.closest('.rename-folder-btn');
+        if (renameBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const folderId = renameBtn.dataset.folderId;
+            const currentName = renameBtn.dataset.folderName;
             const newName = window.prompt('New folder name:', currentName);
             if (!newName || newName.trim() === currentName) return;
             
@@ -536,24 +593,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('Folder renamed', 'success');
                 setTimeout(() => window.location.reload(), 800);
             } catch (err) {}
-        });
-    });
-
-    document.querySelectorAll('.delete-folder-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!confirm('Delete this folder and all its contents? This cannot be undone.')) return;
-            const folderId = btn.dataset.folderId;
-            
-            try {
-                await apiFetch(`/api/v1/folders/${folderId}`, {
-                    method: 'DELETE'
-                });
-                showToast('Folder deleted', 'success');
-                setTimeout(() => window.location.reload(), 800);
-            } catch (err) {}
-        });
+            return;
+        }
     });
 
     // SECTION 16 — Admin admins page

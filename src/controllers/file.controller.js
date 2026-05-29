@@ -2,6 +2,8 @@ const fileModel = require('../models/file.model');
 const folderModel = require('../models/folder.model');
 const cloudinaryService = require('../services/cloudinary.service');
 const auditModel = require('../models/audit.model');
+const https = require('https');
+const { URL } = require('url');
 
 async function upload(req, res, next) {
     try {
@@ -102,7 +104,12 @@ async function download(req, res, next) {
             return res.status(404).json({ success: false, message: 'File not found' });
         }
 
-        const url = await cloudinaryService.generateSignedUrl(file.cloudinary_public_id, file.cloudinary_resource_type, 60);
+        const url = await cloudinaryService.generateSignedUrl(
+            file.cloudinary_public_id,
+            file.cloudinary_resource_type,
+            60,
+            file.original_name
+        );
 
         auditModel.log({
             org_id: req.user.org_id,
@@ -112,7 +119,22 @@ async function download(req, res, next) {
             resource_id: file.id
         });
 
-        res.status(200).json({ success: true, url, expires_in: 60 });
+        // Set Content-Disposition header to force download with original filename
+        const filename = file.original_name.replace(/"/g, '\\"');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', file.mime_type || 'application/octet-stream');
+
+        // Fetch file from Cloudinary and stream it to client
+        const fileUrl = new URL(url);
+        return https.get(url, (cloudinaryRes) => {
+            if (cloudinaryRes.statusCode !== 200) {
+                return res.status(500).json({ success: false, message: 'Failed to fetch file from storage' });
+            }
+            cloudinaryRes.pipe(res);
+        }).on('error', (err) => {
+            console.error('Cloudinary download error:', err);
+            res.status(500).json({ success: false, message: 'Error downloading file' });
+        });
     } catch (error) {
         next(error);
     }

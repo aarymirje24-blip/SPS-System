@@ -18,9 +18,10 @@ app.use(helmet({
             defaultSrc: ["'self'"],
             scriptSrc: [
                 "'self'",
-                "unpkg.com"          // for Lucide icons CDN used in views
+                "unpkg.com",
+                "'unsafe-inline'"    // needed for EJS inline scripts like Lucide icons initialization
             ],
-            scriptSrcAttr: ["'none'"],
+            scriptSrcAttr: ["'unsafe-inline'"], // needed for inline onclick event handlers
             styleSrc: ["'self'", "'unsafe-inline'"],   // unsafe-inline needed for EJS inline styles
             imgSrc: ["'self'", "data:", "res.cloudinary.com", "*.cloudinary.com"],
             connectSrc: ["'self'"],

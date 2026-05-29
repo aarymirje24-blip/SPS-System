@@ -1,6 +1,7 @@
 const { verifyAccessToken } = require('../utils/jwt');
+const pool = require('../config/db');
 
-function authMiddleware(req, res, next) {
+async function authMiddleware(req, res, next) {
     // Try to get token from cookie first
     let token = req.cookies?.auth_token;
     
@@ -24,9 +25,21 @@ function authMiddleware(req, res, next) {
         // Verify the token
         const decoded = verifyAccessToken(token);
         
-        // Attach user to request
-        req.user = decoded;
-        
+        // Fetch current user from database to ensure role and active status are fresh
+        const result = await pool.query(
+            'SELECT id, org_id, email, full_name, role, avatar_url, is_active FROM users WHERE id = $1',
+            [decoded.id]
+        );
+
+        const user = result.rows[0];
+        if (!user || !user.is_active) {
+            return res.status(401).json({ 
+                success: false, 
+                message: 'Authentication required' 
+            });
+        }
+
+        req.user = user;
         next();
     } catch (error) {
         return res.status(401).json({ 

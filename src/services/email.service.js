@@ -21,9 +21,10 @@ transporter.verify((error) => {
 
 async function sendMail({ to, subject, html }) {
     if (!env.SMTP_HOST) {
-        console.log('SMTP not configured. Email to', to, 'subject:', subject);
+        const message = `SMTP not configured. Email to ${to} subject: ${subject}`;
+        console.log(message);
         console.log('HTML content:', html);
-        return null;
+        throw new Error('SMTP not configured');
     }
     return transporter.sendMail({
         from: env.EMAIL_FROM,

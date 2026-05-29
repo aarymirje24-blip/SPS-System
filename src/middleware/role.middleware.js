@@ -8,8 +8,11 @@ function requireRole(...roles) {
             });
         }
         
+        const userRole = typeof req.user.role === 'string' ? req.user.role.toLowerCase() : '';
+        const allowedRoles = roles.map(r => r.toLowerCase());
+
         // Check if user's role is in the allowed roles
-        if (!roles.includes(req.user.role)) {
+        if (!allowedRoles.includes(userRole)) {
             return res.status(403).json({ 
                 success: false, 
                 message: 'Insufficient permissions' 

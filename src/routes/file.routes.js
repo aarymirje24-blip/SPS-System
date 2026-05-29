@@ -13,8 +13,8 @@ router.get('/shared-with-me', (req, res, next) => {
 router.get('/:id/shares', shareController.listShares);
 router.post('/:id/share', shareController.createShare);
 router.delete('/:id/share/:shareId', shareController.revokeShare);
-router.get('/:id', fileController.getOne);
 router.get('/:id/download', fileController.download);
+router.get('/:id', fileController.getOne);
 router.patch('/:id', fileController.update);
 router.delete('/:id', fileController.remove);
 

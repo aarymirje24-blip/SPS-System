@@ -27,8 +27,15 @@
                         <td><%= file.uploader_name %></td>
                         <td style="color: var(--text-muted); font-size: 0.875rem;"><%= (file.size_bytes / 1024).toFixed(1) %> KB</td>
                         <td style="color: var(--text-muted); font-size: 0.875rem;"><%= new Date(file.created_at).toLocaleDateString() %></td>
-                        <td>
-                            <button class="delete-file-btn btn btn-danger" style="padding: 0.25rem 0.5rem;" data-file-id="<%= file.id %>"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
+                        <td style="display: flex; gap: 0.5rem;">
+                            <button class="download-file-btn btn" style="padding: 0.25rem 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem;" data-file-id="<%= file.id %>">
+                                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                                Download
+                            </button>
+                            <button class="delete-file-btn btn btn-danger" style="padding: 0.25rem 0.75rem; display: flex; align-items: center; justify-content: center; gap: 0.35rem; color: white;" data-file-id="<%= file.id %>">
+                                <i data-lucide="trash-2" style="width: 16px; height: 16px;"></i>
+                                Delete
+                            </button>
                         </td>
                     </tr>
                 <% }); %>
