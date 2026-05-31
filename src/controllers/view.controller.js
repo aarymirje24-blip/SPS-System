@@ -96,11 +96,23 @@ async function renderShared(req, res, next) {
 async function renderFileDetail(req, res, next) {
     try {
         console.log('[FileDetail] Step 1 — findById', req.params.id);
-        const file = await fileModel.findById(req.params.id, req.user.org_id);
-        console.log('[FileDetail] Step 2 — file:', file ? file.original_name : 'NULL');
-
-        if (!file) {
+        const fileExists = await fileModel.findById(req.params.id, req.user.org_id);
+        
+        if (!fileExists) {
+            console.log('[FileDetail] File not found in org');
             return res.status(404).render('404', { title: 'File Not Found', user: req.user, currentPath: req.path });
+        }
+
+        console.log('[FileDetail] Step 2 — checkAccess for user', req.user.id);
+        const file = await shareModel.checkAccess(req.params.id, req.user.id, req.user.org_id, req.user.role);
+        
+        if (!file) {
+            console.log('[FileDetail] Access denied for user');
+            return res.status(403).render('error', {
+                title: 'Access Denied',
+                statusCode: 403,
+                message: 'You do not have permission to access this file.'
+            });
         }
 
         console.log('[FileDetail] Step 3 — findByFileId');
@@ -111,14 +123,15 @@ async function renderFileDetail(req, res, next) {
         const orgUsers = await userModel.findAllByOrg(req.user.org_id, { limit: 100 });
         console.log('[FileDetail] Step 6 — orgUsers count:', orgUsers.users.length);
 
-        console.log('[FileDetail] Step 7 — rendering files/detail');
+        console.log('[FileDetail] Step 7 — rendering files/detail with resolvedPermission:', file.resolved_permission);
         res.render('files/detail', {
             title: file.original_name,
             user: req.user,
             currentPath: req.path,
             file,
             shares,
-            orgUsers: orgUsers.users
+            orgUsers: orgUsers.users,
+            resolvedPermission: file.resolved_permission
         });
         console.log('[FileDetail] Step 8 — render called OK');
     } catch (error) {

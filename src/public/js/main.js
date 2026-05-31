@@ -257,6 +257,49 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {}
         });
     }
+
+    // Inline details editing
+    const editFileBtn = document.getElementById('edit-file-btn');
+    const editDetailsSection = document.getElementById('edit-details-section');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const editFileForm = document.getElementById('edit-file-form');
+
+    if (editFileBtn && editDetailsSection) {
+        editFileBtn.addEventListener('click', () => {
+            editDetailsSection.style.display = 'block';
+            editFileBtn.style.display = 'none';
+        });
+    }
+
+    if (cancelEditBtn && editDetailsSection && editFileBtn) {
+        cancelEditBtn.addEventListener('click', () => {
+            editDetailsSection.style.display = 'none';
+            editFileBtn.style.display = 'inline-block';
+        });
+    }
+
+    if (editFileForm) {
+        editFileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fileId = editFileForm.getAttribute('data-file-id');
+            const tagsInput = document.getElementById('edit-tags').value;
+            const descInput = document.getElementById('edit-desc').value;
+
+            const tags = tagsInput
+                .split(',')
+                .map(t => t.trim())
+                .filter(t => t !== '');
+
+            try {
+                await apiFetch(`/api/v1/files/${fileId}`, {
+                    method: 'PATCH',
+                    body: { tags, description: descInput }
+                });
+                showToast('File details updated successfully', 'success');
+                setTimeout(() => window.location.reload(), 800);
+            } catch (err) {}
+        });
+    }
     
     // File list inline delete
     document.querySelectorAll('.download-file-btn').forEach(btn => {

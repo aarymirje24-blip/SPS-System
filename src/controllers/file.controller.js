@@ -2,7 +2,9 @@ const fileModel = require('../models/file.model');
 const folderModel = require('../models/folder.model');
 const cloudinaryService = require('../services/cloudinary.service');
 const auditModel = require('../models/audit.model');
+const shareModel = require('../models/share.model');
 const https = require('https');
+const http = require('http');
 const { URL } = require('url');
 
 async function upload(req, res, next) {
@@ -87,10 +89,16 @@ async function list(req, res, next) {
 
 async function getOne(req, res, next) {
     try {
-        const file = await fileModel.findById(req.params.id, req.user.org_id);
-        if (!file) {
+        const fileExists = await fileModel.findById(req.params.id, req.user.org_id);
+        if (!fileExists) {
             return res.status(404).json({ success: false, message: 'File not found' });
         }
+        
+        const file = await shareModel.checkAccess(req.params.id, req.user.id, req.user.org_id, req.user.role);
+        if (!file) {
+            return res.status(403).json({ success: false, message: 'Access denied to this file' });
+        }
+        
         res.status(200).json({ success: true, file });
     } catch (error) {
         next(error);
@@ -99,9 +107,20 @@ async function getOne(req, res, next) {
 
 async function download(req, res, next) {
     try {
-        const file = await fileModel.findById(req.params.id, req.user.org_id);
-        if (!file) {
+        const fileExists = await fileModel.findById(req.params.id, req.user.org_id);
+        if (!fileExists) {
             return res.status(404).json({ success: false, message: 'File not found' });
+        }
+
+        const file = await shareModel.checkAccess(req.params.id, req.user.id, req.user.org_id, req.user.role);
+        if (!file) {
+            return res.status(403).json({ success: false, message: 'Access denied to this file' });
+        }
+
+        // Only allow download if resolved_permission is owner, admin, download, or edit
+        const permitted = ['owner', 'admin', 'download', 'edit'];
+        if (!permitted.includes(file.resolved_permission)) {
+            return res.status(403).json({ success: false, message: 'Forbidden: You do not have permission to download this file' });
         }
 
         const url = await cloudinaryService.generateSignedUrl(
@@ -119,22 +138,35 @@ async function download(req, res, next) {
             resource_id: file.id
         });
 
-        // Set Content-Disposition header to force download with original filename
-        const filename = file.original_name.replace(/"/g, '\\"');
-        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-        res.setHeader('Content-Type', file.mime_type || 'application/octet-stream');
-
-        // Fetch file from Cloudinary and stream it to client
-        const fileUrl = new URL(url);
-        return https.get(url, (cloudinaryRes) => {
-            if (cloudinaryRes.statusCode !== 200) {
-                return res.status(500).json({ success: false, message: 'Failed to fetch file from storage' });
+        // Fetch file from Cloudinary and stream it to client, following redirects if needed
+        function streamFromCloudinary(targetUrl, redirectCount = 0) {
+            if (redirectCount > 5) {
+                return res.status(500).json({ success: false, message: 'Too many redirects from storage' });
             }
-            cloudinaryRes.pipe(res);
-        }).on('error', (err) => {
-            console.error('Cloudinary download error:', err);
-            res.status(500).json({ success: false, message: 'Error downloading file' });
-        });
+
+            const protocol = targetUrl.startsWith('https') ? https : http;
+            protocol.get(targetUrl, (cloudinaryRes) => {
+                if (cloudinaryRes.statusCode >= 300 && cloudinaryRes.statusCode < 400 && cloudinaryRes.headers.location) {
+                    return streamFromCloudinary(cloudinaryRes.headers.location, redirectCount + 1);
+                }
+
+                if (cloudinaryRes.statusCode !== 200) {
+                    return res.status(500).json({ success: false, message: 'Failed to fetch file from storage' });
+                }
+
+                // Set headers ONLY when we have a successful 200 OK stream from Cloudinary!
+                const filename = file.original_name.replace(/"/g, '\\"');
+                res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+                res.setHeader('Content-Type', file.mime_type || 'application/octet-stream');
+
+                cloudinaryRes.pipe(res);
+            }).on('error', (err) => {
+                console.error('Cloudinary download error:', err);
+                res.status(500).json({ success: false, message: 'Error downloading file' });
+            });
+        }
+
+        streamFromCloudinary(url);
     } catch (error) {
         next(error);
     }
@@ -142,13 +174,20 @@ async function download(req, res, next) {
 
 async function remove(req, res, next) {
     try {
-        const file = await fileModel.findById(req.params.id, req.user.org_id);
-        if (!file) {
+        const fileExists = await fileModel.findById(req.params.id, req.user.org_id);
+        if (!fileExists) {
             return res.status(404).json({ success: false, message: 'File not found' });
         }
 
-        if (file.uploaded_by !== req.user.id && req.user.role === 'user') {
-            return res.status(403).json({ success: false, message: 'Forbidden: You do not own this file' });
+        const file = await shareModel.checkAccess(req.params.id, req.user.id, req.user.org_id, req.user.role);
+        if (!file) {
+            return res.status(403).json({ success: false, message: 'Access denied to this file' });
+        }
+
+        // Only allow delete if resolved_permission is owner, admin, or edit
+        const permitted = ['owner', 'admin', 'edit'];
+        if (!permitted.includes(file.resolved_permission)) {
+            return res.status(403).json({ success: false, message: 'Forbidden: You do not have permission to delete this file' });
         }
 
         const deleted = await fileModel.softDeleteById(req.params.id, req.user.org_id, req.user.id);
@@ -172,13 +211,20 @@ async function remove(req, res, next) {
 
 async function update(req, res, next) {
     try {
-        const file = await fileModel.findById(req.params.id, req.user.org_id);
-        if (!file) {
+        const fileExists = await fileModel.findById(req.params.id, req.user.org_id);
+        if (!fileExists) {
             return res.status(404).json({ success: false, message: 'File not found' });
         }
 
-        if (file.uploaded_by !== req.user.id && req.user.role === 'user') {
-            return res.status(403).json({ success: false, message: 'Forbidden: You do not own this file' });
+        const file = await shareModel.checkAccess(req.params.id, req.user.id, req.user.org_id, req.user.role);
+        if (!file) {
+            return res.status(403).json({ success: false, message: 'Access denied to this file' });
+        }
+
+        // Only allow edit if resolved_permission is owner, admin, or edit
+        const permitted = ['owner', 'admin', 'edit'];
+        if (!permitted.includes(file.resolved_permission)) {
+            return res.status(403).json({ success: false, message: 'Forbidden: You do not have permission to edit this file' });
         }
 
         const updatedFile = await fileModel.updateById(req.params.id, req.user.org_id, req.body);

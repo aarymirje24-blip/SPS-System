@@ -126,6 +126,90 @@ transporter.verify((error) => {
 });
 ```
 
+### 5. Granular File Permissions Hierarchy & Access Resolution (`src/models/share.model.js`)
+To enforce secure file access across the organization, the system uses a custom permissions-hierarchy resolution method `checkAccess`. It evaluates user relationships relative to a file and returns a `resolved_permission` variable mapping to `'owner'`, `'admin'`, `'edit'`, `'download'`, or `'view'`. When user-specific and organization-wide sharing parameters overlap, the highest level of access is resolved (edit > download > view).
+
+```javascript
+// src/models/share.model.js
+async function checkAccess(file_id, user_id, org_id, role) {
+    const result = await pool.query(`
+        SELECT 
+          f.*,
+          u.full_name as uploader_name,
+          (SELECT permission FROM file_shares 
+           WHERE file_id = $1 AND share_type = 'org_wide' AND (expires_at IS NULL OR expires_at > now()) LIMIT 1) as org_wide_permission,
+          (SELECT permission FROM file_shares 
+           WHERE file_id = $1 AND shared_with_user_id = $2 AND (expires_at IS NULL OR expires_at > now()) LIMIT 1) as user_permission
+        FROM files f
+        JOIN users u ON f.uploaded_by = u.id
+        WHERE f.id = $1 AND f.org_id = $3 AND f.is_deleted = false
+    `, [file_id, user_id, org_id]);
+    
+    const file = result.rows[0];
+    if (!file) return null;
+
+    // Resolve permission hierarchy
+    let resolved = null;
+    if (file.uploaded_by === user_id) {
+        resolved = 'owner';
+    } else if (role === 'admin' || role === 'super_admin') {
+        resolved = 'admin';
+    } else {
+        const userPerm = file.user_permission;
+        const orgPerm = file.org_wide_permission;
+        
+        if (userPerm || orgPerm) {
+            const levels = { 'view': 1, 'download': 2, 'edit': 3 };
+            const userLevel = userPerm ? levels[userPerm] : 0;
+            const orgLevel = orgPerm ? levels[orgPerm] : 0;
+            
+            const maxLevel = Math.max(userLevel, orgLevel);
+            if (maxLevel === 3) resolved = 'edit';
+            else if (maxLevel === 2) resolved = 'download';
+            else if (maxLevel === 1) resolved = 'view';
+        }
+    }
+
+    if (!resolved) return null; // No access
+
+    file.resolved_permission = resolved;
+    return file;
+}
+```
+
+### 6. Robust Cloudinary Download Redirect Streaming (`src/controllers/file.controller.js`)
+When initiating secure downloads, the server generates a signed Cloudinary delivery URL. To ensure maximum reliability and avoid empty or broken payload issues from the storage CDN, the controller implements a recursive helper that follows up to 5 levels of HTTP/HTTPS redirects. Furthermore, it defers setting response headers (such as `Content-Disposition` and `Content-Type`) until a successful `200 OK` connection is established with the final redirect endpoint.
+
+```javascript
+// src/controllers/file.controller.js (Excerpt)
+function streamFromCloudinary(targetUrl, redirectCount = 0) {
+    if (redirectCount > 5) {
+        return res.status(500).json({ success: false, message: 'Too many redirects from storage' });
+    }
+
+    const protocol = targetUrl.startsWith('https') ? https : http;
+    protocol.get(targetUrl, (cloudinaryRes) => {
+        if (cloudinaryRes.statusCode >= 300 && cloudinaryRes.statusCode < 400 && cloudinaryRes.headers.location) {
+            return streamFromCloudinary(cloudinaryRes.headers.location, redirectCount + 1);
+        }
+
+        if (cloudinaryRes.statusCode !== 200) {
+            return res.status(500).json({ success: false, message: 'Failed to fetch file from storage' });
+        }
+
+        // Set headers ONLY when we have a successful 200 OK stream from Cloudinary!
+        const filename = file.original_name.replace(/"/g, '\\"');
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+        res.setHeader('Content-Type', file.mime_type || 'application/octet-stream');
+
+        cloudinaryRes.pipe(res);
+    }).on('error', (err) => {
+        console.error('Cloudinary download error:', err);
+        res.status(500).json({ success: false, message: 'Error downloading file' });
+    });
+}
+```
+
 ---
 
 ## Web Pages and Code Mappings
@@ -204,4 +288,78 @@ transporter.verify((error) => {
         <div class="stat-value"><%= stats.totalFiles %></div>
     </div>
 </div>
+
+### 5. File Detail Page
+- **Route**: `GET /files/:id`
+- **Controller**: `src/controllers/view.controller.js` -> `renderFileDetail`
+- **View Code**: `src/views/files/detail.ejs`
+- **Client JS Code**: `src/public/js/main.js`
+
+This page renders full file metadata and dynamically displays interface sections based on the user's `resolvedPermission`:
+
+1. **Conditional Sharing Card**: Rendered only when the user has `'owner'` or `'admin'` access:
+```html
+<!-- src/views/files/detail.ejs (Excerpt) -->
+<% if (resolvedPermission === 'owner' || resolvedPermission === 'admin') { %>
+    <div class="card">
+        <h3>Share File</h3>
+        <form id="share-form" data-file-id="<%= file.id %>">
+             <!-- Specific User vs Org-Wide radio fields and email dropdown -->
+        </form>
+        <h4>Active Shares</h4>
+        <!-- Active shares list with 'Revoke' button -->
+    </div>
+<% } %>
+```
+
+2. **Inline Edit Details Form**: Renders the toggleable tags and description editor for users with `'owner'`, `'admin'`, or `'edit'` permission:
+```html
+<!-- src/views/files/detail.ejs (Excerpt) -->
+<% if (resolvedPermission === 'owner' || resolvedPermission === 'admin' || resolvedPermission === 'edit') { %>
+    <div id="edit-details-section" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+        <h3>Edit File Details</h3>
+        <form id="edit-file-form" data-file-id="<%= file.id %>">
+            <input type="text" id="edit-tags" class="form-control" value="<%= Array.isArray(file.tags) ? file.tags.join(', ') : '' %>">
+            <textarea id="edit-desc" class="form-control" rows="3"><%= file.description || '' %></textarea>
+            <button type="submit" class="btn">Save Changes</button>
+            <button type="button" id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+        </form>
+    </div>
+<% } %>
+```
+
+3. **Frontend Interactions (`src/public/js/main.js`)**:
+Handles show, hide, and PATCH form submission to perform seamless inline metadata updates:
+```javascript
+// src/public/js/main.js (Excerpt)
+const editFileBtn = document.getElementById('edit-file-btn');
+const editDetailsSection = document.getElementById('edit-details-section');
+const cancelEditBtn = document.getElementById('cancel-edit-btn');
+const editFileForm = document.getElementById('edit-file-form');
+
+if (editFileBtn && editDetailsSection) {
+    editFileBtn.addEventListener('click', () => {
+        editDetailsSection.style.display = 'block';
+        editFileBtn.style.display = 'none';
+    });
+}
+
+if (editFileForm) {
+    editFileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fileId = editFileForm.getAttribute('data-file-id');
+        const tags = document.getElementById('edit-tags').value.split(',').map(t => t.trim()).filter(t => t !== '');
+        const description = document.getElementById('edit-desc').value;
+
+        try {
+            await apiFetch(`/api/v1/files/${fileId}`, {
+                method: 'PATCH',
+                body: { tags, description }
+            });
+            showToast('File details updated successfully', 'success');
+            setTimeout(() => window.location.reload(), 800);
+        } catch (err) {}
+    });
+}
+```
 ```

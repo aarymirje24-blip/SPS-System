@@ -36,19 +36,49 @@ async function deleteById(id) {
     return result.rows[0] || null;
 }
 
-async function checkAccess(file_id, user_id, org_id) {
+async function checkAccess(file_id, user_id, org_id, role) {
     const result = await pool.query(`
         SELECT 
-          f.uploaded_by,
-          f.org_id,
+          f.*,
+          u.full_name as uploader_name,
           (SELECT permission FROM file_shares 
            WHERE file_id = $1 AND share_type = 'org_wide' AND (expires_at IS NULL OR expires_at > now()) LIMIT 1) as org_wide_permission,
           (SELECT permission FROM file_shares 
            WHERE file_id = $1 AND shared_with_user_id = $2 AND (expires_at IS NULL OR expires_at > now()) LIMIT 1) as user_permission
         FROM files f
+        JOIN users u ON f.uploaded_by = u.id
         WHERE f.id = $1 AND f.org_id = $3 AND f.is_deleted = false
     `, [file_id, user_id, org_id]);
-    return result.rows[0] || null;
+    
+    const file = result.rows[0];
+    if (!file) return null;
+
+    // Resolve permission hierarchy
+    let resolved = null;
+    if (file.uploaded_by === user_id) {
+        resolved = 'owner';
+    } else if (role === 'admin' || role === 'super_admin') {
+        resolved = 'admin';
+    } else {
+        const userPerm = file.user_permission;
+        const orgPerm = file.org_wide_permission;
+        
+        if (userPerm || orgPerm) {
+            const levels = { 'view': 1, 'download': 2, 'edit': 3 };
+            const userLevel = userPerm ? levels[userPerm] : 0;
+            const orgLevel = orgPerm ? levels[orgPerm] : 0;
+            
+            const maxLevel = Math.max(userLevel, orgLevel);
+            if (maxLevel === 3) resolved = 'edit';
+            else if (maxLevel === 2) resolved = 'download';
+            else if (maxLevel === 1) resolved = 'view';
+        }
+    }
+
+    if (!resolved) return null; // No access
+
+    file.resolved_permission = resolved;
+    return file;
 }
 
 module.exports = {

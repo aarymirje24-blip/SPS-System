@@ -56,13 +56,32 @@ This PRD covers the complete backend API (routes, controllers, DB schema) and fr
 
 ## 2. User Roles & Permissions
 
+SecureShare operates on two tiers of access control:
+1. **System-level Role-Based Access Control (RBAC)**: Defined via user roles (`super_admin`, `admin`, and `user`) representing organizational status.
+2. **Granular File-level Access Control (ACL)**: Resolves user access relative to individual files based on ownership and active user-specific or organization-wide sharing parameters.
+
 | Role | Who | Core Permissions |
 |------|-----|-----------------|
 | Super Admin | Org owner / first account | Full access: manage org, all admins, all users, all files, audit logs |
 | Admin | Appointed by Super Admin | Manage users (no role change), manage folders, view all files, share on behalf |
-| User | Regular member | Upload own files, view shared files, manage own folders, share with permitted users |
+| User | Regular member | Upload own files, manage own folders, view/edit/download shared files (conditional on share permission) |
 
-### 2.1 Permission Matrix
+### 2.1 File Permission Levels & Hierarchy
+
+For any file-level action, the system evaluates the user's relationship with the file and maps it to a **Resolved Permission**:
+
+| Resolved Permission | Access Level | Description |
+|---------------------|:------------:|-------------|
+| `owner`             | 5 (Highest)  | The user uploaded the file. Full access to view, download, edit, and share/revoke sharing. |
+| `admin`             | 4            | The user has `admin` or `super_admin` system role. Full access to all files within the organization. |
+| `edit`              | 3            | The user was granted specific edit access. Can view, download, and edit file details (tags/description) and delete. Cannot share or revoke shares. |
+| `download`          | 2            | The user was granted specific download access. Can view and download the file. Cannot edit or delete details. |
+| `view`              | 1 (Lowest)   | The user was granted view access. Can only see file details. Cannot download, edit, or delete. |
+
+#### Overlapping Permissions Resolution
+If a user is subject to multiple sharing rules (for example, a user-specific share and an organization-wide share on the same file), the system resolves this by granting the **highest** level of access based on the permission levels (`edit` (3) > `download` (2) > `view` (1)).
+
+### 2.2 Permission Matrix
 
 | Action | Super Admin | Admin | User |
 |--------|:-----------:|:-----:|:----:|
@@ -71,15 +90,15 @@ This PRD covers the complete backend API (routes, controllers, DB schema) and fr
 | Invite / remove users | Y | Y | N |
 | Reset any user password | Y | Y | N |
 | View all files in org | Y | Y | N |
-| Delete any file | Y | Y | N |
+| Delete any file | Y | Y | Y (if `owner` or `edit` permission) |
 | Create top-level folders | Y | Y | N |
 | Create sub-folders | Y | Y | Y |
 | Upload files | Y | Y | Y |
 | Share files (org-wide) | Y | Y | N |
-| Share files (specific users) | Y | Y | Y |
+| Share files (specific users) | Y | Y | Y (only if `owner`) |
 | View audit log | Y | Y | N |
 | Download own files | Y | Y | Y |
-| Download shared files | Y | Y | Y |
+| Download shared files | Y | Y | Y (requires `download` or `edit` permission) |
 
 ---
 
@@ -299,15 +318,15 @@ All routes return JSON. Auth routes are excluded from JWT middleware. All other 
 |--------|------|------|-------------|
 | POST | `/upload` | JWT | Multipart upload to Cloudinary, then DB record |
 | GET | `/` | JWT | List files accessible to current user (paginated, filterable) |
-| GET | `/:id` | JWT | Get file metadata + share status |
-| GET | `/:id/download` | JWT | Generate signed Cloudinary URL, log download |
-| PATCH | `/:id` | Owner / Admin | Update description, tags, folder |
-| DELETE | `/:id` | Owner / Admin | Soft-delete, remove from Cloudinary |
-| POST | `/:id/share` | Owner / Admin | Create file_share record(s) |
-| DELETE | `/:id/share/:shareId` | Owner / Admin | Revoke a specific share |
-| GET | `/:id/shares` | Owner / Admin | List all active shares for a file |
+| GET | `/:id` | JWT (requires `view`+) | Get file metadata + share status |
+| GET | `/:id/download` | JWT (requires `owner`/`admin`/`edit`/`download`) | Generate signed Cloudinary URL, streams download with redirect support |
+| PATCH | `/:id` | JWT (requires `owner`/`admin`/`edit`) | Update description, tags, folder |
+| DELETE | `/:id` | JWT (requires `owner`/`admin`/`edit`) | Soft-delete, remove from Cloudinary |
+| POST | `/:id/share` | JWT (requires `owner`/`admin`) | Create file_share record(s) |
+| DELETE | `/:id/share/:shareId` | JWT (requires `owner`/`admin`) | Revoke a specific share |
+| GET | `/:id/shares` | JWT (requires `owner`/`admin`) | List all active shares for a file |
 | GET | `/shared-with-me` | JWT | List files shared with current user |
-| POST | `/:id/version` | Owner / Admin | Upload new version of existing file |
+| POST | `/:id/version` | JWT (requires `owner`/`admin`) | Upload new version of existing file |
 
 ### 5.4 Folder Routes — `/api/v1/folders`
 
@@ -438,16 +457,25 @@ Present on all authenticated pages. Layout: **Logo** (left) → 'My Files', 'Sha
 6. On `201` → modal closes, file appears in list with fade-in animation
 7. On error → toast notification with error message
 
-### 8.4 File Share Flow
+### 8.4 File Share & Edit Details Flow
 
 1. User opens `/files/:id` (file detail page)
-2. Clicks **'Share'** button in action bar
-3. Share modal opens: radio buttons for 'Specific People' vs 'Entire Organisation'
-4. If **'Specific People'**: type-ahead user search input (calls `GET /api/v1/users?q=...`) → select user(s) → choose permission (View / Download / Edit) → optional expiry date
-5. If **'Entire Organisation'**: choose permission → optional expiry
-6. Clicks **'Share'** → `POST /api/v1/files/:id/share`
-7. On `201` → share panel updates with new share entry; existing shares listed with **'Revoke'** button
-8. 'Revoke' button → `DELETE /api/v1/files/:id/share/:shareId` → entry removed from list
+2. **Access Control Check**: The page checks the user's `resolvedPermission` for the file:
+   - **Sharing Access**: If `resolvedPermission` is `'owner'` or `'admin'`, the **Share File** panel and **Active Shares** list are rendered on the right. Otherwise, this panel is completely omitted from the layout.
+   - **Editing Access**: If `resolvedPermission` is `'owner'`, `'admin'`, or `'edit'`, an **Edit Details** button is rendered near the file information card.
+3. **Sharing Actions (Owners/Admins only)**:
+   - Select share type: "Specific User" vs "Entire Organisation".
+   - If "Specific User": select a member from the dropdown (excluding the logged-in user).
+   - Select permission level (`view`, `download`, or `edit`).
+   - Submit form -> JS invokes `POST /api/v1/files/:id/share`.
+   - On success (201) -> The Active Shares list updates immediately.
+   - Revoking a share: Click **'Revoke'** button -> JS invokes `DELETE /api/v1/files/:id/share/:shareId` -> Revoked share is removed.
+4. **Metadata Editing Actions (Owners/Admins/Edit-permitted users)**:
+   - Click **'Edit Details'** button.
+   - An inline form is displayed, allowing updates to **Tags** (comma-separated list) and **Description** textarea.
+   - Submit form -> JS invokes `PATCH /api/v1/files/:id` with `{ tags, description }`.
+   - On success (200) -> A success toast is displayed and the page reloads to show the updated metadata.
+   - Cancel edit: Click **'Cancel'** button -> The inline edit form closes and the edit button is restored.
 
 ### 8.5 Folder Navigation Flow
 
@@ -513,15 +541,22 @@ Present on all authenticated pages. Layout: **Logo** (left) → 'My Files', 'Sha
 ### 10.2 Authorisation
 
 - Every API route enforces `auth.middleware` + `role.middleware`.
-- File access checks: user must be owner OR have an active `file_share` record OR be admin of same org.
-- Org isolation: every query filters by `org_id` from `req.user` — no cross-org data leakage.
+- **Granular File Access Control (checkAccess)**: Access to any file is verified via `shareModel.checkAccess()`.
+  - Determines if the user is the file owner (resolved as `owner`).
+  - Checks if the user has `admin` or `super_admin` role in the organization (resolved as `admin`).
+  - Aggregates all active user-specific and organization-wide file shares, resolving overlapping entries by prioritizing the highest permission level (`edit` > `download` > `view`).
+  - Yields a single `resolved_permission` variable, which is utilized across endpoints to restrict actions dynamically.
+- **Org isolation**: Every SQL query is strictly scoped by `org_id` fetched from the validated JWT token, preventing cross-tenant access.
 
-### 10.3 File Storage
+### 10.3 File Storage & Streaming
 
-- Files stored in Cloudinary under **private** access type — no public URLs.
-- Downloads use short-lived (60-second) signed URLs generated server-side.
-- MIME type whitelist enforced both client-side and in upload middleware.
-- 50 MB per-file limit; org-level storage quota enforced before upload accepted.
+- Files are stored in Cloudinary with the **private** delivery type to prevent unauthorized access via public URLs.
+- **Robust Download Streaming**: 
+  - Downloads are routed through a secure, server-side download controller that generates short-lived signed URLs.
+  - The download agent follows HTTP and HTTPS redirects (up to 5 recursive levels) when streaming files from Cloudinary storage to prevent empty/broken downloads.
+  - Response headers (such as `Content-Disposition` for original filename delivery and `Content-Type` for MIME type preservation) are deferred and set **only** upon establishing a successful `200 OK` connection with the final redirect location.
+- MIME type whitelist and file size constraints are validated before the file is uploaded.
+- Per-file uploads are restricted by `MAX_FILE_SIZE_MB` (default 50 MB), and total organizational space is checked against `storage_quota_mb` prior to saving.
 
 ### 10.4 Transport & Headers
 

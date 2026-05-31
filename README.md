@@ -5,12 +5,14 @@ SecureShare is a secure, cloud-based enterprise file management and sharing syst
 ## Features
 
 - **🏢 Organization Management**: Create and manage isolated organization workspaces.
-- **🔐 Role-Based Access Control (RBAC)**: Distinct permissions for `super_admin`, `admin`, and `user` roles.
-- **📂 Secure File Storage**: Direct and secure file uploads stored via **Cloudinary**.
-- **🔗 File Sharing**: Generate expiring, secure shareable links to share files internally or externally.
+- **🔐 Role-Based Access Control (RBAC)**: Distinct permissions for `super_admin`, `admin`, and `user` roles at the system level.
+- **🛡️ Granular File Permissions**: Hierarchy-based access resolution (`owner` > `admin` > `edit` > `download` > `view`) aggregating individual and organization-wide shares.
+- **✏️ Inline Details Editing**: Allows owners, admins, and users with `edit` permission to seamlessly update tags and file descriptions directly from the UI.
+- **📂 Secure & Robust File Storage**: Direct and secure file uploads stored via **Cloudinary**, with downloads using short-lived signed URLs streamed through an advanced redirect-following mechanism.
+- **🔗 File Sharing**: Create specific user or organization-wide shares with view, download, or edit permission controls, restricted to file owners and administrators.
 - **✉️ Email Notifications**: Automated email invites and password reset functionality using SMTP (Nodemailer).
 - **📋 Audit Logging**: Comprehensive tracking of all file, user, and organization activities.
-- **🎨 Modern UI**: Server-side rendered views using EJS with a clean, responsive CSS design.
+- **🎨 Modern UI**: Server-side rendered views using EJS with a clean, responsive CSS design, dynamically adjusting visible panels based on user permission level.
 
 ## Tech Stack
 
